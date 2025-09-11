@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: bookingKol
+  profiles:
+    active: dev
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+  datasource:
+    driver-class-name: org.postgresql.Driver
