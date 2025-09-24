@@ -1,6 +1,8 @@
-package com.web.bookingKol.temp_models;
+package com.web.bookingKol.domain.kol.models;
 
 import com.web.bookingKol.domain.user.models.User;
+import com.web.bookingKol.temp_models.BookingRequest;
+import com.web.bookingKol.temp_models.Payout;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -35,9 +37,6 @@ public class KolProfile {
 
     @Column(name = "bio", length = Integer.MAX_VALUE)
     private String bio;
-
-    @Column(name = "avatar_url", length = Integer.MAX_VALUE)
-    private String avatarUrl;
 
     @Size(max = 100)
     @Column(name = "country", length = 100)
@@ -109,5 +108,11 @@ public class KolProfile {
 
     @OneToMany(mappedBy = "kol")
     private Set<Payout> payouts = new LinkedHashSet<>();
+
+    @Column(name = "overall_rating")
+    private Double overallRating;
+
+    @Column(name = "feedback_count")
+    private Integer feedbackCount;
 
 }
