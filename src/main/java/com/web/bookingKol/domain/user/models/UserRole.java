@@ -16,8 +16,9 @@ import java.util.UUID;
 @Entity
 @Table(name = "user_roles")
 public class UserRole {
-    @EmbeddedId
-    private UserRoleId id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -36,24 +37,3 @@ public class UserRole {
     private Instant createdAt;
 }
 
-@Embeddable
-@Data
-class UserRoleId implements Serializable {
-    @Column(name = "user_id")
-    private UUID userId;
-
-    @Column(name = "role_id")
-    private Integer roleId;
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof UserRoleId that)) return false;
-        return userId.equals(that.userId) && roleId.equals(that.roleId);
-    }
-
-    @Override
-    public int hashCode() {
-        return java.util.Objects.hash(userId, roleId);
-    }
-}

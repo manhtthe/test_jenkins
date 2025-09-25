@@ -8,6 +8,8 @@ import com.web.bookingKol.auth.dtos.RegisterRequestDTO;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.ResponseEntity;
+import com.web.bookingKol.auth.dtos.BrandRegisterRequestDTO;
+
 
 public interface AuthService {
     ResponseEntity<ApiResponse<?>> login(LoginRequestDTO loginRequestDTO, HttpServletRequest request, HttpServletResponse response);
@@ -21,4 +23,10 @@ public interface AuthService {
     ResponseEntity<ApiResponse<?>> verifyEmail(String email, String code) throws RoleNotFoundException;
 
     ResponseEntity<ApiResponse<?>> resendEmailVerificationCode(String email);
+
+    ResponseEntity<ApiResponse<?>> registerBrand(BrandRegisterRequestDTO request) throws UserAlreadyExistsException;
+
+    ResponseEntity<ApiResponse<?>> verifyEmaildk(String email, String code);
+
+
 }
