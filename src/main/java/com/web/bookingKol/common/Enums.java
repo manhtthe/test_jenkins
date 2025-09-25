@@ -12,6 +12,18 @@ public class Enums {
     }
 
     @Getter
+    public enum UserGender {
+        Male,
+        Female,
+    }
+
+    @Getter
+    public enum Languages {
+        vi,
+        en,
+    }
+
+    @Getter
     public enum Roles {
         SUPER_ADMIN(1),
         ADMIN(2),
@@ -22,6 +34,13 @@ public class Enums {
         private Roles(Integer value) {
             this.value = value;
         }
+    }
+
+    // ---------------- KOL ----------------
+    public enum CategoryKey {
+        FASHION_BEAUTY,
+        FOOD_BEVERAGE,
+        TECH_DIGITAL
     }
 
     // ---------------- BOOKING ----------------
