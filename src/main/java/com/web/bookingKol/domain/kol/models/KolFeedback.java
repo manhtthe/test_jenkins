@@ -1,7 +1,6 @@
 package com.web.bookingKol.domain.kol.models;
 
 import com.web.bookingKol.domain.user.models.User;
-import com.web.bookingKol.temp_models.Brand;
 import com.web.bookingKol.temp_models.Contract;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -28,11 +27,7 @@ public class KolFeedback {
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "brand_id", nullable = false)
-    private Brand brand;
 
-    @NotNull
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "kol_id", nullable = false)
     private KolProfile kol;
 

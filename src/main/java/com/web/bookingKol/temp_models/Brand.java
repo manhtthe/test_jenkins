@@ -11,9 +11,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 
-import java.time.Instant;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Getter
@@ -66,31 +64,13 @@ public class Brand {
 
     @ColumnDefault("now()")
     @Column(name = "created_at")
-    private Instant createdAt;
+    private OffsetDateTime createdAt;
 
     @ColumnDefault("now()")
     @Column(name = "updated_at")
-    private Instant updatedAt;
+    private OffsetDateTime updatedAt;
 
     @Column(name = "deleted_at")
-    private Instant deletedAt;
-
-    @OneToMany(mappedBy = "brand")
-    private Set<BrandPaymentMethod> brandPaymentMethods = new LinkedHashSet<>();
-
-    @OneToMany(mappedBy = "brand")
-    private Set<Campaign> campaigns = new LinkedHashSet<>();
-
-    @OneToMany(mappedBy = "brand")
-    private Set<KolFeedback> kolFeedbacks = new LinkedHashSet<>();
-
-    @OneToMany(mappedBy = "brand")
-    private Set<KolPromoUsage> kolPromoUsages = new LinkedHashSet<>();
-
-    @OneToMany(mappedBy = "brand")
-    private Set<KolPromotion> kolPromotions = new LinkedHashSet<>();
-
-    @OneToMany(mappedBy = "brand")
-    private Set<PaymentIntent> paymentIntents = new LinkedHashSet<>();
+    private OffsetDateTime deletedAt;
 
 }
