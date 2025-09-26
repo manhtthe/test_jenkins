@@ -30,6 +30,7 @@ import com.web.bookingKol.auth.dtos.BrandRegisterRequestDTO;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 
@@ -80,7 +81,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public ResponseEntity<ApiResponse<?>> registerBrand(BrandRegisterRequestDTO request) throws UserAlreadyExistsException {
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new UserAlreadyExistsException("Email already registered");
+            throw new UserAlreadyExistsException("Email này đã được sử dụng");
         }
 
         User user = new User();
@@ -108,9 +109,9 @@ public class AuthServiceImpl implements AuthService {
 
         String code = UUID.randomUUID().toString();
         EmailVerification ev = EmailVerification.builder()
-                .email(user.getEmail())
+                .user(user)
                 .code(code)
-                .expiredAt(LocalDateTime.now().plusHours(24))
+                .expiredAt(Instant.now().plus(24, ChronoUnit.HOURS))
                 .build();
         emailVerificationRepository.save(ev);
 
@@ -126,20 +127,20 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public ResponseEntity<ApiResponse<?>> verifyEmaildk(String email, String code) {
-        EmailVerification ev = emailVerificationRepository
-                .findByEmailAndCodeAndUsedFalse(email, code)
-                .orElseThrow(() -> new IllegalArgumentException("Mã xác thực không hợp lệ hoặc đã dùng"));
-
-        if (ev.getExpiredAt().isBefore(LocalDateTime.now())) {
-            throw new IllegalArgumentException("Mã xác thực đã hết hạn");
-        }
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy người dùng"));
 
+        EmailVerification ev = emailVerificationRepository
+                .findByUserAndCodeAndUsedFalse(user, code)
+                .orElseThrow(() -> new IllegalArgumentException("Mã xác thực không hợp lệ hoặc đã dùng"));
+
+        if (ev.getExpiredAt().isBefore(Instant.now())) {
+            throw new IllegalArgumentException("Mã xác thực đã hết hạn");
+        }
+
         user.setStatus(UserStatus.ACTIVE.name());
         userRepository.save(user);
-
         ev.setUsed(true);
         emailVerificationRepository.save(ev);
 
@@ -148,6 +149,7 @@ public class AuthServiceImpl implements AuthService {
                 .message(List.of("Xác thực email thành công. Bạn có thể đăng nhập."))
                 .build());
     }
+
 
 
     @Override

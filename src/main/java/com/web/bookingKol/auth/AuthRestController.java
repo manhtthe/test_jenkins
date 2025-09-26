@@ -28,17 +28,5 @@ public class AuthRestController {
         return authService.login(loginRequestDTO, request, response);
     }
 
-    @PostMapping("/register/brand")
-    public ResponseEntity<ApiResponse<?>> registerBrand(@RequestBody BrandRegisterRequestDTO request)
-            throws UserAlreadyExistsException {
-        return authService.registerBrand(request);
-    }
 
-
-    @GetMapping("/verify")
-    public ResponseEntity<ApiResponse<?>> verifyEmail(
-            @RequestParam String email,
-            @RequestParam String code) {
-        return authService.verifyEmaildk(email, code);
-    }
 }

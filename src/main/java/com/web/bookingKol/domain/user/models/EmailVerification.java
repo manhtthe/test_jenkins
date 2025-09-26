@@ -2,8 +2,7 @@ package com.web.bookingKol.domain.user.models;
 
 import jakarta.persistence.*;
 import lombok.*;
-
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 @Entity
@@ -14,19 +13,25 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 public class EmailVerification {
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false)
-    private String email;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @Column(nullable = false)
     private String code;
 
+    @Column(name = "expired_at")
+    private Instant expiredAt;
+
     @Column(nullable = false)
-    private LocalDateTime expiredAt;
+    @Builder.Default
+    private Boolean used = false;
 
-    private Boolean used;
+    @Column(name = "created_at", updatable = false, insertable = false)
+    private Instant createdAt;
 }
-

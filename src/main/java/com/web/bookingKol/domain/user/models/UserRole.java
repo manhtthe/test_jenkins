@@ -22,13 +22,11 @@ public class UserRole {
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @MapsId("userId")
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @MapsId("roleId")
     @JoinColumn(name = "role_id", nullable = false)
     private Role role;
 
