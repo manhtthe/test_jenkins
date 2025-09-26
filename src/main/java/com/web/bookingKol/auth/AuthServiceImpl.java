@@ -26,6 +26,7 @@ import com.web.bookingKol.common.services.EmailService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.web.bookingKol.auth.dtos.BrandRegisterRequestDTO;
+import org.springframework.transaction.annotation.Transactional;
 
 
 import java.time.Instant;
@@ -79,6 +80,7 @@ public class AuthServiceImpl implements AuthService {
 
 //     Phần đăng ký của nhãn hàng
     @Override
+    @Transactional
     public ResponseEntity<ApiResponse<?>> registerBrand(BrandRegisterRequestDTO request) throws UserAlreadyExistsException {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new UserAlreadyExistsException("Email này đã được sử dụng");
