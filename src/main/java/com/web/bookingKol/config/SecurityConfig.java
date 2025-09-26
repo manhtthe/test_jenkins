@@ -67,7 +67,17 @@ public class SecurityConfig {
                 }))
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
-                        .anyRequest().permitAll())
+                        .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/actuator/**").hasAuthority("SUPER_ADMIN")
+                        .requestMatchers("/kol-profiles/**").permitAll()
+                        .requestMatchers("/register/**", "/api/**/register/**").permitAll()
+                        .requestMatchers(
+                                "/v3/api-docs/**",
+                                "/v3/api-docs",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html"
+                        ).permitAll()
+                        .anyRequest().authenticated())
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(authEntryPoint))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         http.authenticationProvider(authenticationProvider(userDetailsServiceImpl));
