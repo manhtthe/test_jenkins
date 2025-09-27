@@ -1,5 +1,6 @@
 package com.web.bookingKol.temp_models;
 
+import com.web.bookingKol.domain.booking.models.Contract;
 import com.web.bookingKol.domain.kol.models.KolPayoutAccount;
 import com.web.bookingKol.domain.kol.models.KolProfile;
 import jakarta.persistence.*;

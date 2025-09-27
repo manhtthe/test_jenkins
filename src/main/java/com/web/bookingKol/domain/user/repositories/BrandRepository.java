@@ -1,6 +1,6 @@
 package com.web.bookingKol.domain.user.repositories;
 
-import com.web.bookingKol.temp_models.Brand;
+import com.web.bookingKol.domain.user.models.Brand;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.UUID;

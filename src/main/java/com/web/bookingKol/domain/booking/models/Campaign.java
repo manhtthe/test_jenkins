@@ -1,7 +1,10 @@
-package com.web.bookingKol.temp_models;
+package com.web.bookingKol.domain.booking.models;
 
 import com.web.bookingKol.domain.kol.models.KolPromotion;
 import com.web.bookingKol.domain.user.models.User;
+import com.web.bookingKol.temp_models.Conversation;
+import com.web.bookingKol.temp_models.PromoCode;
+import com.web.bookingKol.temp_models.PurchasedServicePackage;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -80,11 +83,6 @@ public class Campaign {
 
     @OneToMany(mappedBy = "campaign")
     private Set<KolPromotion> kolPromotions = new LinkedHashSet<>();
-
-    @NotNull
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
 
     @OneToMany(mappedBy = "campaign")
     private Set<PurchasedServicePackage> purchasedServicePackages = new LinkedHashSet<>();

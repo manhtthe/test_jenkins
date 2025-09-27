@@ -1,7 +1,9 @@
-package com.web.bookingKol.temp_models;
+package com.web.bookingKol.domain.booking.models;
 
 import com.web.bookingKol.domain.kol.models.KolFeedback;
 import com.web.bookingKol.domain.kol.models.KolPromoUsage;
+import com.web.bookingKol.temp_models.PaymentIntent;
+import com.web.bookingKol.temp_models.Payout;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -27,10 +29,6 @@ public class Contract {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "booking_request_id", nullable = false)
     private BookingRequest bookingRequest;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "offer_id")
-    private Offer offer;
 
     @Size(max = 100)
     @Column(name = "contract_number", length = 100)

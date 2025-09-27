@@ -8,7 +8,7 @@ import com.web.bookingKol.common.exception.UserAlreadyExistsException;
 import com.web.bookingKol.common.payload.ApiResponse;
 import com.web.bookingKol.domain.user.models.*;
 import com.web.bookingKol.domain.user.repositories.*;
-import com.web.bookingKol.temp_models.Brand;
+import com.web.bookingKol.domain.user.models.Brand;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +30,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
