@@ -1,5 +1,6 @@
 package com.web.bookingKol.temp_models;
 
+import com.web.bookingKol.domain.booking.models.Campaign;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;

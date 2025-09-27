@@ -1,5 +1,9 @@
 package com.web.bookingKol.domain.user.models;
 
+import com.web.bookingKol.domain.booking.models.Campaign;
+import com.web.bookingKol.domain.booking.models.Dispute;
+import com.web.bookingKol.domain.booking.models.Offer;
+import com.web.bookingKol.domain.booking.models.Review;
 import com.web.bookingKol.domain.file.models.File;
 import com.web.bookingKol.domain.kol.models.KolFeedback;
 import com.web.bookingKol.domain.kol.models.KolProfile;

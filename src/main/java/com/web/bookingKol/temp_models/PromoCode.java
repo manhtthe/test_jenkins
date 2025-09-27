@@ -1,5 +1,7 @@
 package com.web.bookingKol.temp_models;
 
+import com.web.bookingKol.domain.booking.models.Campaign;
+import com.web.bookingKol.domain.booking.models.ContractPromo;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;

@@ -1,9 +1,9 @@
-package com.web.bookingKol.temp_models;
+package com.web.bookingKol.domain.booking.models;
 
+import com.web.bookingKol.domain.kol.models.KolProfile;
 import com.web.bookingKol.domain.user.models.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
@@ -14,8 +14,8 @@ import java.util.UUID;
 @Getter
 @Setter
 @Entity
-@Table(name = "disputes")
-public class Dispute {
+@Table(name = "reviews")
+public class Review {
     @Id
     @Column(name = "id", nullable = false)
     private UUID id;
@@ -27,25 +27,23 @@ public class Dispute {
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "raised_by", nullable = false)
-    private User raisedBy;
+    @JoinColumn(name = "reviewer_id", nullable = false)
+    private User reviewer;
 
-    @Size(max = 50)
-    @Column(name = "status", length = 50)
-    private String status;
+    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "kol_id", nullable = false)
+    private KolProfile kol;
 
-    @Column(name = "reason", length = Integer.MAX_VALUE)
-    private String reason;
+    @NotNull
+    @Column(name = "rating", nullable = false)
+    private Integer rating;
 
-    @Column(name = "resolution_note", length = Integer.MAX_VALUE)
-    private String resolutionNote;
+    @Column(name = "comment", length = Integer.MAX_VALUE)
+    private String comment;
 
     @ColumnDefault("now()")
     @Column(name = "created_at")
     private Instant createdAt;
-
-    @ColumnDefault("now()")
-    @Column(name = "updated_at")
-    private Instant updatedAt;
 
 }

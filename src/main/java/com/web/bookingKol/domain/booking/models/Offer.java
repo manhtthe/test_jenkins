@@ -1,4 +1,4 @@
-package com.web.bookingKol.temp_models;
+package com.web.bookingKol.domain.booking.models;
 
 import com.web.bookingKol.domain.kol.models.KolPromoUsage;
 import com.web.bookingKol.domain.kol.models.Platform;
@@ -75,9 +75,6 @@ public class Offer {
     @ColumnDefault("now()")
     @Column(name = "updated_at")
     private Instant updatedAt;
-
-    @OneToMany(mappedBy = "offer")
-    private Set<Contract> contracts = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "offer")
     private Set<KolPromoUsage> kolPromoUsages = new LinkedHashSet<>();

@@ -1,5 +1,6 @@
-package com.web.bookingKol.temp_models;
+package com.web.bookingKol.domain.booking.models;
 
+import com.web.bookingKol.temp_models.PromoCode;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -13,8 +14,8 @@ import java.util.UUID;
 @Getter
 @Setter
 @Entity
-@Table(name = "contract_taxes")
-public class ContractTax {
+@Table(name = "contract_promos")
+public class ContractPromo {
     @Id
     @Column(name = "id", nullable = false)
     private UUID id;
@@ -26,8 +27,8 @@ public class ContractTax {
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "tax_id", nullable = false)
-    private Tax tax;
+    @JoinColumn(name = "promo_code_id", nullable = false)
+    private PromoCode promoCode;
 
     @Column(name = "applied_pct", precision = 6, scale = 3)
     private BigDecimal appliedPct;

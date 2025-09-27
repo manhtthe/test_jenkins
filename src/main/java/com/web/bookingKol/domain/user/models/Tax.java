@@ -1,5 +1,6 @@
-package com.web.bookingKol.temp_models;
+package com.web.bookingKol.domain.user.models;
 
+import com.web.bookingKol.domain.booking.models.ContractTax;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;

@@ -1,7 +1,7 @@
 package com.web.bookingKol.domain.kol.models;
 
-import com.web.bookingKol.temp_models.Deliverable;
-import com.web.bookingKol.temp_models.Offer;
+import com.web.bookingKol.domain.booking.models.Deliverable;
+import com.web.bookingKol.domain.booking.models.Offer;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
