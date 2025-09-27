@@ -93,8 +93,8 @@ public class AuthServiceImpl implements AuthService {
         user.setCreatedAt(Instant.now());
         userRepository.save(user);
 
-        Role brandRole = roleRepository.findByKey("ROLE_BRAND")
-                .orElseThrow(() -> new RuntimeException("Role BRAND not found !!"));
+        Role brandRole = roleRepository.findByKey("USER")
+                .orElseThrow(() -> new RuntimeException("Role USER not found !!"));
 
         UserRole userRole = new UserRole();
         userRole.setUser(user);

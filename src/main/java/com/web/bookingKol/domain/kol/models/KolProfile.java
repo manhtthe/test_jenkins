@@ -74,8 +74,8 @@ public class KolProfile {
     @OneToMany(mappedBy = "kol")
     private Set<BookingRequest> bookingRequests = new LinkedHashSet<>();
 
-    @OneToMany(mappedBy = "kol")
-    private Set<KolAvailability> kolAvailabilities = new LinkedHashSet<>();
+//    @OneToMany(mappedBy = "kol")
+//    private Set<KolAvailability> kolAvailabilities = new LinkedHashSet<>();
 
     @ManyToMany
     @JoinTable(

@@ -29,7 +29,7 @@ public class UserDetailsImpl implements UserDetails {
         this.phone = user.getPhone();
         this.passwordHash = user.getPasswordHash();
         this.authorities = user.getRoles().stream()
-                .map(role -> new SimpleGrantedAuthority(role.getKey()))
+                .map(role -> new SimpleGrantedAuthority("ROLE_" + role.getKey()))
                 .collect(Collectors.toList());
         this.isAccountNonLocked = true;
         this.isAccountNonExpired = true;
