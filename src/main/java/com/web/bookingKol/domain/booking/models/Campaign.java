@@ -84,6 +84,7 @@ public class Campaign {
     @OneToMany(mappedBy = "campaign")
     private Set<KolPromotion> kolPromotions = new LinkedHashSet<>();
 
+
     @OneToMany(mappedBy = "campaign")
     private Set<PurchasedServicePackage> purchasedServicePackages = new LinkedHashSet<>();
 

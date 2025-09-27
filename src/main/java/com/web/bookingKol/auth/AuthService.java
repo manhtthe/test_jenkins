@@ -24,7 +24,7 @@ public interface AuthService {
 
     ResponseEntity<ApiResponse<?>> resendEmailVerificationCode(String email);
 
-    ResponseEntity<ApiResponse<?>> registerBrand(BrandRegisterRequestDTO request) throws UserAlreadyExistsException;
+    ResponseEntity<ApiResponse<?>> registerBrand(RegisterRequestDTO request) throws UserAlreadyExistsException;
 
     ResponseEntity<ApiResponse<?>> verifyEmaildk(String email, String code);
 

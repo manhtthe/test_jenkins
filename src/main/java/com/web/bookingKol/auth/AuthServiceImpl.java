@@ -3,6 +3,7 @@ package com.web.bookingKol.auth;
 import com.web.bookingKol.auth.dtos.LoginRequestDTO;
 import com.web.bookingKol.auth.dtos.LoginResponseDTO;
 import com.web.bookingKol.auth.dtos.RegisterRequestDTO;
+import com.web.bookingKol.common.Enums;
 import com.web.bookingKol.common.exception.RoleNotFoundException;
 import com.web.bookingKol.common.exception.UserAlreadyExistsException;
 import com.web.bookingKol.common.payload.ApiResponse;
@@ -77,36 +78,34 @@ public class AuthServiceImpl implements AuthService {
     }
 
 
-//     Phần đăng ký của nhãn hàng
+    //     Phần đăng ký của người dùng
     @Override
     @Transactional
-    public ResponseEntity<ApiResponse<?>> registerBrand(BrandRegisterRequestDTO request) throws UserAlreadyExistsException {
+    public ResponseEntity<ApiResponse<?>> registerBrand(RegisterRequestDTO request)
+            throws UserAlreadyExistsException {
+
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new UserAlreadyExistsException("Email này đã được sử dụng");
+        }
+        if (userRepository.existsByPhone(request.getPhone())) {
+            throw new UserAlreadyExistsException("Số điện thoại này đã được sử dụng");
         }
 
         User user = new User();
         user.setEmail(request.getEmail());
         user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+        user.setPhone(request.getPhone());
         user.setStatus(UserStatus.PENDING.name());
         user.setCreatedAt(Instant.now());
         userRepository.save(user);
 
-        Role brandRole = roleRepository.findByKey("USER")
+        Role defaultRole = roleRepository.findByKey(Enums.Roles.USER.name())
                 .orElseThrow(() -> new RuntimeException("Role USER not found !!"));
 
         UserRole userRole = new UserRole();
         userRole.setUser(user);
-        userRole.setRole(brandRole);
+        userRole.setRole(defaultRole);
         userRoleRepository.save(userRole);
-
-
-        Brand brand = new Brand();
-        brand.setUser(user);
-        brand.setBrandName(request.getBrandName());
-        brand.setContactPerson(request.getContactPerson());
-        brand.setContactPhone(request.getContactPhone());
-        brandRepository.save(brand);
 
         String code = UUID.randomUUID().toString();
         EmailVerification ev = EmailVerification.builder()
@@ -125,6 +124,8 @@ public class AuthServiceImpl implements AuthService {
                         .build()
         );
     }
+
+
 
     @Override
     public ResponseEntity<ApiResponse<?>> verifyEmaildk(String email, String code) {
