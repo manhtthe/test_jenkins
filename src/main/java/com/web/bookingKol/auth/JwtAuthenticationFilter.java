@@ -26,25 +26,28 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
         try {
             String accessToken = getToken(request);
+            logger.info(">>> TOKEN: " + accessToken);
             if (accessToken != null && jwtUtils.validateAccessToken(accessToken)) {
                 UUID userId = jwtUtils.claimUserId(accessToken);
+                logger.info(">>> USERID FROM TOKEN: " + userId);
                 UserDetails userDetails = userDetailsService.loadUserByUserId(userId);
+                logger.info(">>> AUTHORITIES: " + userDetails.getAuthorities());
                 UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(
-                                userDetails,
-                                null,
-                                userDetails.getAuthorities());
-                authentication.setDetails(authentication);
+                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+            } else {
+                logger.warn(">>> TOKEN INVALID");
             }
         } catch (Exception e) {
-            logger.error(e.getMessage());
+            logger.error(">>> ERROR JWT FILTER: ", e);
         }
         filterChain.doFilter(request, response);
     }
+
 
     private String getToken(HttpServletRequest request) {
         String headerAuth = request.getHeader("Authorization");
