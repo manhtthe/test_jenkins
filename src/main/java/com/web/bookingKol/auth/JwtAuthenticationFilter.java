@@ -1,5 +1,6 @@
 package com.web.bookingKol.auth;
 
+import com.web.bookingKol.domain.user.repositories.BlacklistedTokenRepository;
 import com.web.bookingKol.domain.user.services.impl.UserDetailsServiceImpl;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -24,6 +25,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Autowired
     UserDetailsServiceImpl userDetailsService;
     private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
+    @Autowired
+    private BlacklistedTokenRepository blacklistedTokenRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -32,6 +35,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String accessToken = getToken(request);
             logger.info(">>> TOKEN: " + accessToken);
             if (accessToken != null && jwtUtils.validateAccessToken(accessToken)) {
+                if (blacklistedTokenRepository.existsByToken(accessToken)) {
+                    logger.warn("Token đã bị thu hồi (logout)");
+                    filterChain.doFilter(request, response);
+                    return;
+                }
+
                 UUID userId = jwtUtils.claimUserId(accessToken);
                 logger.info(">>> USERID FROM TOKEN: " + userId);
                 UserDetails userDetails = userDetailsService.loadUserByUserId(userId);

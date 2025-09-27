@@ -2,6 +2,7 @@ package com.web.bookingKol.domain.kol.services.impl;
 
 
 import com.web.bookingKol.common.payload.ApiResponse;
+import com.web.bookingKol.domain.kol.dtos.KolAvailabilityDTO;
 import com.web.bookingKol.domain.kol.models.KolAvailability;
 import com.web.bookingKol.domain.kol.models.KolProfile;
 import com.web.bookingKol.domain.kol.repositories.KolAvailabilityRepository;
@@ -23,31 +24,20 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class KolAvailabilityServiceImpl implements KolAvailabilityService {
 
-    private final KolAvailabilityRepository availabilityRepository;
-    private final UserRepository userRepository;
-    private final KolProfileRepository kolProfileRepository;
+    private final KolAvailabilityRepository kolAvailabilityRepository;
 
     @Override
-    public ApiResponse<List<KolAvailability>> getKolSchedule(UUID userId, OffsetDateTime start, OffsetDateTime end) {
-        // Lấy user
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy người dùng"));
+    public ApiResponse<List<KolAvailabilityDTO>> getKolSchedule(UUID userId, OffsetDateTime start, OffsetDateTime end) {
+        var list = kolAvailabilityRepository.findByUserIdAndDateRange(userId, start, end)
+                .stream()
+                .map(KolAvailabilityDTO::new)
+                .toList();
 
-
-        kolProfileRepository.findByUserId(user.getId())
-                .orElseThrow(() -> new EntityNotFoundException("Người dùng này chưa có KolProfile"));
-
-        List<KolAvailability> schedules;
-        if (start != null && end != null) {
-            schedules = availabilityRepository.findByUserAndStartAtBetween(user, start, end);
-        } else {
-            schedules = availabilityRepository.findByUser(user);
-        }
-
-        return ApiResponse.<List<KolAvailability>>builder()
-                .status(HttpStatus.OK.value())
+        return ApiResponse.<List<KolAvailabilityDTO>>builder()
+                .status(200)
                 .message(List.of("Lấy thời khóa biểu thành công"))
-                .data(schedules)
+                .data(list)
                 .build();
     }
+
 }
