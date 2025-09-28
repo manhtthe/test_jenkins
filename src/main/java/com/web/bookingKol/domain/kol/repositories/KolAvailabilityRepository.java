@@ -18,8 +18,7 @@ public interface KolAvailabilityRepository extends JpaRepository<KolAvailability
     List<KolAvailability> findByUserAndStartAtBetween(User user, OffsetDateTime start, OffsetDateTime end);
 
     @Query(value = """
-    SELECT * FROM kol_availabilities
-    WHERE user_id = :userId
+    SELECT * FROM kol_availabilities WHERE user_id = :userId
       AND (COALESCE(:start, start_at) <= start_at)
       AND (COALESCE(:end, end_at) >= end_at)
     ORDER BY start_at
