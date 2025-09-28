@@ -75,6 +75,7 @@ public class SecurityConfig {
                         .requestMatchers("/kol-profiles/**").permitAll()
                         .requestMatchers("/register/**").permitAll()
                         .requestMatchers("/password/**").permitAll()
+                        .requestMatchers("/consultation/**").permitAll()
                         .requestMatchers(
                                 "/v3/api-docs/**",
                                 "/v3/api-docs",
