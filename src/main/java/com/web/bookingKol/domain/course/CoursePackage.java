@@ -41,4 +41,8 @@ public class CoursePackage {
     @OneToMany
     @JoinColumn(name = "target_id", referencedColumnName = "id", insertable = false, updatable = false)
     private Set<FileUsage> fileUsages;
+
+    @Column(name = "is_available")
+    private Boolean isAvailable;
+
 }

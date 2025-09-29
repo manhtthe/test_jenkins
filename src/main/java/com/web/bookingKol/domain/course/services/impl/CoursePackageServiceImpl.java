@@ -2,9 +2,9 @@ package com.web.bookingKol.domain.course.services.impl;
 
 import com.web.bookingKol.common.Enums;
 import com.web.bookingKol.common.payload.ApiResponse;
+import com.web.bookingKol.domain.course.CoursePackage;
 import com.web.bookingKol.domain.course.CoursePackageDTO;
 import com.web.bookingKol.domain.course.CoursePackageMapper;
-import com.web.bookingKol.domain.course.CoursePackage;
 import com.web.bookingKol.domain.course.CoursePackageRepository;
 import com.web.bookingKol.domain.course.services.CoursePackageService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +34,8 @@ public class CoursePackageServiceImpl implements CoursePackageService {
 
     @Override
     public ApiResponse<List<CoursePackageDTO>> getAllCourse() {
-        List<CoursePackageDTO> coursePackages = coursePackageMapper.toDtoList(coursePackageRepository.findAll());
+        List<CoursePackageDTO> coursePackages = coursePackageMapper.toDtoList(coursePackageRepository.findAll()
+                .stream().filter(coursePackage -> Boolean.TRUE.equals(coursePackage.getIsAvailable())).toList());
         return ApiResponse.<List<CoursePackageDTO>>builder()
                 .status(HttpStatus.OK.value())
                 .message(List.of("Get all course packages success"))

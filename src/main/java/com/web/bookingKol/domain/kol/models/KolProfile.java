@@ -13,6 +13,7 @@ import org.hibernate.annotations.ColumnDefault;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -75,9 +76,6 @@ public class KolProfile {
     @OneToMany(mappedBy = "kol")
     private Set<BookingRequest> bookingRequests = new LinkedHashSet<>();
 
-//    @OneToMany(mappedBy = "kol")
-//    private Set<KolAvailability> kolAvailabilities = new LinkedHashSet<>();
-
     @ManyToMany
     @JoinTable(
         name = "kol_categories",
@@ -119,4 +117,11 @@ public class KolProfile {
     @OneToMany
     @JoinColumn(name = "target_id", referencedColumnName = "id", insertable = false, updatable = false)
     private Set<FileUsage> fileUsages;
+
+    @Column(name = "dob")
+    private Date dob;
+
+    @Column(name = "experience", length = Integer.MAX_VALUE)
+    private String experience;
+
 }
