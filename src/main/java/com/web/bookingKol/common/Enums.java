@@ -200,4 +200,10 @@ public class Enums {
         BRAND,      // chỉ 1 brand cụ thể
         CAMPAIGN    // chỉ 1 campaign cụ thể
     }
+
+    @Getter
+    public enum PurchasedCourse {
+        COURSEASSIGNED,    // khóa học đã được gửi
+        NOTASSIGNED        // khóa học chưa được gửi
+    }
 }

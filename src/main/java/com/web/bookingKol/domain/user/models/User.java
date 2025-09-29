@@ -95,6 +95,17 @@ public class User {
     @OneToMany(mappedBy = "createdBy")
     private Set<Campaign> campaigns = new LinkedHashSet<>();
 
+    @Column(name = "introduction", length = 1000)
+    private String introduction;
+
+    @Column(name = "date_of_birth")
+    private java.time.LocalDate dateOfBirth;
+
+    @Column(name = "country", length = 255)
+    private String country;
+
+
+
     @OneToMany(mappedBy = "user")
     private Set<ConversationMember> conversationMembers = new LinkedHashSet<>();
 
