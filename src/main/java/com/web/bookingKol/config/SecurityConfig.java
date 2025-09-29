@@ -72,7 +72,6 @@ public class SecurityConfig {
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/actuator/**").hasAuthority("SUPER_ADMIN")
                         .requestMatchers("/kol-profiles/**", "/courses/**").permitAll()
-                        .requestMatchers("/kol-profiles/**").permitAll()
                         .requestMatchers("/register/**").permitAll()
                         .requestMatchers("/password/**").permitAll()
                         .requestMatchers("/consultation/**").permitAll()

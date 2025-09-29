@@ -11,6 +11,7 @@ import org.springframework.validation.BindException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.util.List;
 
@@ -108,6 +109,18 @@ public class GlobalExceptionHandler {
                 .body(
                         ApiResponse.builder()
                                 .status(HttpStatus.NOT_FOUND.value())
+                                .message(List.of(exception.getMessage()))
+                                .build()
+                );
+    }
+
+    @ExceptionHandler(value = MaxUploadSizeExceededException.class)
+    public ResponseEntity<ApiResponse<?>> MaxUploadSizeExceededExceptionHandler(MaxUploadSizeExceededException exception) {
+        return ResponseEntity
+                .status(HttpStatus.PAYLOAD_TOO_LARGE)
+                .body(
+                        ApiResponse.builder()
+                                .status(HttpStatus.PAYLOAD_TOO_LARGE.value())
                                 .message(List.of(exception.getMessage()))
                                 .build()
                 );
