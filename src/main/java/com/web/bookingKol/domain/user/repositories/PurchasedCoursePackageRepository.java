@@ -1,13 +1,13 @@
 package com.web.bookingKol.domain.user.repositories;
 
-import com.web.bookingKol.domain.user.models.User;
 import com.web.bookingKol.temp_models.PurchasedCoursePackage;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
-import java.util.List;
 import java.util.UUID;
 
-public interface PurchasedCoursePackageRepository extends JpaRepository<PurchasedCoursePackage, UUID> {
-    List<PurchasedCoursePackage> findByUser(User user);
+public interface PurchasedCoursePackageRepository extends JpaRepository<PurchasedCoursePackage, UUID>,
+        JpaSpecificationExecutor<PurchasedCoursePackage> {
 }
+
 
