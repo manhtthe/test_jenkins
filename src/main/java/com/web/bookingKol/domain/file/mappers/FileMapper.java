@@ -11,4 +11,6 @@ public interface FileMapper {
     FileDTO toDto(File file);
 
     List<FileDTO> toDtoList(List<File> files);
+
+    File toEntity(FileDTO fileDTO);
 }

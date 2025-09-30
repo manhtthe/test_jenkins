@@ -6,6 +6,7 @@ import com.web.bookingKol.common.payload.ApiResponse;
 import com.web.bookingKol.domain.file.FileService;
 import com.web.bookingKol.domain.file.dtos.FileDTO;
 import com.web.bookingKol.domain.file.dtos.FileUsageDTO;
+import com.web.bookingKol.domain.file.mappers.FileMapper;
 import com.web.bookingKol.domain.kol.dtos.*;
 import com.web.bookingKol.domain.kol.mappers.KolCreatedMapper;
 import com.web.bookingKol.domain.kol.mappers.KolDetailMapper;
@@ -20,6 +21,9 @@ import com.web.bookingKol.domain.user.models.User;
 import com.web.bookingKol.domain.user.repositories.RoleRepository;
 import com.web.bookingKol.domain.user.repositories.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.BeanWrapper;
+import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
@@ -28,6 +32,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.beans.PropertyDescriptor;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -52,6 +57,8 @@ public class KolProfileServiceImpl implements KolProfileService {
     private KolCreatedMapper kolCreatedMapper;
     @Autowired
     private FileService fileService;
+    @Autowired
+    private FileMapper fileMapper;
 
     @Override
     public ApiResponse<KolDetailDTO> getKolProfileByUserId(UUID userId) {
@@ -195,9 +202,22 @@ public class KolProfileServiceImpl implements KolProfileService {
                 .collect(Collectors.toSet());
     }
 
+    /**
+     * Create a new KOL account along with their profile.
+     * Only an admin user can perform this operation.
+     * If an avatar file is provided, it will be uploaded and linked to the KOL profile.
+     *
+     * @param AdminId    the ID of the admin user creating the KOL
+     * @param newKolDTO  the details of the new KOL to create
+     * @param fileAvatar       (optional) avatar image file for the KOL
+     * @return ApiResponse containing the created KOL details
+     * @throws AccessDeniedException      if the user is not an admin
+     * @throws UserAlreadyExistsException if the email already exists
+     * @throws IllegalArgumentException   if required roles or categories are not found
+     */
     @Transactional
     @Override
-    public ApiResponse<KolCreatedDTO> createNewKolAccount(UUID AdminId, NewKolDTO newKolDTO, MultipartFile file) {
+    public ApiResponse<KolCreatedDTO> createNewKolAccount(UUID AdminId, NewKolDTO newKolDTO, MultipartFile fileAvatar) {
         User admin = userRepository.findById(AdminId)
                 .orElseThrow(() -> new AccessDeniedException("Only admin can create new Kol accounts"));
         Role role = roleRepository.findByKey(Enums.Roles.KOL.name())
@@ -235,7 +255,7 @@ public class KolProfileServiceImpl implements KolProfileService {
         kolProfile.setCreatedAt(Instant.now());
         kolProfile.setDob(newKolDTO.getDob());
         kolProfile.setExperience(newKolDTO.getExperience());
-        if (newKolDTO.getCategoryIds() != null) {
+        if (newKolDTO.getCategoryIds() != null && !newKolDTO.getCategoryIds().isEmpty()) {
             Set<Category> categories = newKolDTO.getCategoryIds().stream()
                     .map(catId -> categoryRepository.findById(catId)
                             .orElseThrow(() -> new IllegalArgumentException("Category not found: " + catId)))
@@ -243,9 +263,11 @@ public class KolProfileServiceImpl implements KolProfileService {
             kolProfile.setCategories(categories);
         }
         kolProfileRepository.save(kolProfile);
-        if (file != null && !file.isEmpty()) {
-            FileDTO fileDTO = fileService.uploadFilePoint(admin.getId(), file);
+        if (fileAvatar != null && !fileAvatar.isEmpty()) {
+            FileDTO fileDTO = fileService.uploadFilePoint(admin.getId(), fileAvatar);
             newKol.setAvatarUrl(fileDTO.getFileUrl());
+            // Link avatar file to kol profile
+            fileService.createFileUsage(fileMapper.toEntity(fileDTO), kolProfile.getId(), Enums.TargetType.PORTFOLIO.name(), false);
             userRepository.save(newKol);
         }
         return ApiResponse.<KolCreatedDTO>builder()
@@ -253,5 +275,64 @@ public class KolProfileServiceImpl implements KolProfileService {
                 .message(List.of("Create new kol account successfully"))
                 .data(kolCreatedMapper.toDto(kolProfile, kolProfile.getUser()))
                 .build();
+    }
+
+    /**
+     * Update an existing KOL profile and their associated user information.
+     * Only an admin user can perform this operation.
+     * If a new avatar file is provided, it will be uploaded and linked to the KOL profile.
+     *
+     * @param AdminId      the ID of the admin user performing the update
+     * @param kolId        the ID of the KOL profile to update
+     * @param updateKolDTO the updated details for the KOL
+     * @param fileAvatar         (optional) new avatar image file for the KOL
+     * @return ApiResponse containing the updated KOL details
+     * @throws AccessDeniedException    if the user is not an admin
+     * @throws EntityNotFoundException  if the KOL profile is not found
+     */
+    @Transactional
+    @Override
+    public ApiResponse<KolDetailDTO> updateKolProfile(UUID AdminId, UUID kolId, UpdateKolDTO updateKolDTO, MultipartFile fileAvatar) {
+        User admin = userRepository.findById(AdminId)
+                .orElseThrow(() -> new AccessDeniedException("Only admin can create new Kol accounts"));
+        KolProfile kolProfile = kolProfileRepository.findById(kolId)
+                .orElseThrow(() -> new EntityNotFoundException("KolProfile not found for Kol Id: " + kolId));
+        User kolUser = kolProfile.getUser();
+        // Update kol user info and kol profile info
+        BeanUtils.copyProperties(updateKolDTO, kolUser, getNullPropertyNames(updateKolDTO));
+        BeanUtils.copyProperties(updateKolDTO, kolProfile, getNullPropertyNames(updateKolDTO));
+        if (fileAvatar != null && !fileAvatar.isEmpty()) {
+            FileDTO fileDTO = fileService.uploadFilePoint(admin.getId(), fileAvatar);
+            kolUser.setAvatarUrl(fileDTO.getFileUrl());
+            // Link avatar file to kol profile
+            fileService.createFileUsage(fileMapper.toEntity(fileDTO), kolProfile.getId(), Enums.TargetType.PORTFOLIO.name(), false);
+        }
+        kolProfile.setUpdatedAt(Instant.now());
+        userRepository.save(kolUser);
+        kolProfileRepository.save(kolProfile);
+        return ApiResponse.<KolDetailDTO>builder()
+                .status(HttpStatus.OK.value())
+                .message(List.of("Update kol profile successfully"))
+                .data(kolDetailMapper.toDto(kolProfile))
+                .build();
+    }
+
+    /**
+     * Utility method to get names of properties with null values in the source object.
+     * This is used to ignore null properties during BeanUtils.copyProperties.
+     *
+     * @param source the source object to check for null properties
+     * @return an array of property names that have null values
+     */
+    private static String[] getNullPropertyNames(Object source) {
+        final BeanWrapper src = new BeanWrapperImpl(source);
+        PropertyDescriptor[] pds = src.getPropertyDescriptors();
+        Set<String> emptyNames = new HashSet<>();
+        for (PropertyDescriptor pd : pds) {
+            Object srcValue = src.getPropertyValue(pd.getName());
+            if (srcValue == null) emptyNames.add(pd.getName());
+        }
+        String[] result = new String[emptyNames.size()];
+        return emptyNames.toArray(result);
     }
 }

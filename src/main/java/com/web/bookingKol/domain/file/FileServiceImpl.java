@@ -3,9 +3,13 @@ package com.web.bookingKol.domain.file;
 import com.web.bookingKol.common.Enums;
 import com.web.bookingKol.common.payload.ApiResponse;
 import com.web.bookingKol.domain.file.dtos.FileDTO;
+import com.web.bookingKol.domain.file.dtos.FileUsageDTO;
 import com.web.bookingKol.domain.file.mappers.FileMapper;
+import com.web.bookingKol.domain.file.mappers.FileUsageMapper;
 import com.web.bookingKol.domain.file.models.File;
+import com.web.bookingKol.domain.file.models.FileUsage;
 import com.web.bookingKol.domain.file.repositories.FileRepository;
+import com.web.bookingKol.domain.file.repositories.FileUsageRepository;
 import com.web.bookingKol.domain.user.models.User;
 import com.web.bookingKol.domain.user.repositories.UserRepository;
 import org.apache.commons.io.FilenameUtils;
@@ -30,7 +34,11 @@ public class FileServiceImpl implements FileService {
     @Autowired
     private FileMapper fileMapper;
     @Autowired
+    private FileUsageMapper fileUsageMapper;
+    @Autowired
     private FileRepository fileRepository;
+    @Autowired
+    private FileUsageRepository fileUsageRepository;
 
     @Transactional
     @Override
@@ -92,5 +100,19 @@ public class FileServiceImpl implements FileService {
                 .message(List.of("File uploaded successfully"))
                 .data(fileDTOS)
                 .build();
+    }
+
+    @Override
+    public FileUsageDTO createFileUsage(File file, UUID targetId, String targetType, Boolean isCover) {
+        FileUsage fileUsage = new FileUsage();
+        fileUsage.setId(UUID.randomUUID());
+        fileUsage.setFile(file);
+        fileUsage.setTargetId(targetId);
+        fileUsage.setTargetType(targetType);
+        fileUsage.setIsCover(false);
+        fileUsage.setIsActive(true);
+        fileUsage.setCreatedAt(Instant.now());
+        fileUsageRepository.save(fileUsage);
+        return fileUsageMapper.toDto(fileUsage);
     }
 }

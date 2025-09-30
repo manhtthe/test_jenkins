@@ -22,5 +22,7 @@ public interface KolProfileService {
 
     ApiResponse<List<KolProfileDTO>> getAllKolWithFilter(FilterKolDTO filterKolDTO);
 
-    ApiResponse<KolCreatedDTO> createNewKolAccount(UUID AdminId, NewKolDTO newKolDTO, MultipartFile file);
+    ApiResponse<KolCreatedDTO> createNewKolAccount(UUID AdminId, NewKolDTO newKolDTO, MultipartFile fileAvatar);
+
+    ApiResponse<KolDetailDTO> updateKolProfile(UUID AdminId, UUID kolId, UpdateKolDTO updateKolDTO, MultipartFile fileAvatar);
 }
