@@ -17,7 +17,7 @@ public class GeminiAdminController {
 
     private final AiConsultationLogService logService;
 
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN')")
+    @PreAuthorize("hasAnyAuthority('SUPER_ADMIN', 'ADMIN')")
     @GetMapping("/logs")
     public List<AiConsultationLogResponse> getLogs() {
         return logService.getAllLogs();

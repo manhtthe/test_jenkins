@@ -2,8 +2,8 @@ version: "3.9"
 
 services:
   app:
-    image: nguyenthephong/bookingkol_be:1.2.2
-    container_name: bookingkol_be_1.2.2
+    image: nguyenthephong/bookingkol_be:1.2.3
+    container_name: bookingkol_be_1.2.3
     restart: always
     build:
       context: .
