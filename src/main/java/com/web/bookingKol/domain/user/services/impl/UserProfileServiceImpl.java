@@ -29,20 +29,24 @@ public class UserProfileServiceImpl implements UserProfileService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy user"));
 
-        user.setFullName(request.getFullName());
-        user.setGender(request.getGender());
-        user.setPhone(request.getPhone());
-        user.setAddress(request.getAddress());
-        user.setIntroduction(request.getIntroduction());
+        if (request.getFullName() != null) user.setFullName(request.getFullName());
+        if (request.getGender() != null) user.setGender(request.getGender());
+        if (request.getPhone() != null) user.setPhone(request.getPhone());
+        if (request.getAddress() != null) user.setAddress(request.getAddress());
+        if (request.getIntroduction() != null) user.setIntroduction(request.getIntroduction());
         user.setUpdatedAt(Instant.now());
         userRepository.save(user);
 
         Brand brand = brandRepository.findByUser(user)
-                .orElse(new Brand());
-        brand.setUser(user);
-        brand.setBrandName(request.getBrandName());
-        brand.setDateOfBirth(request.getDateOfBirth());
-        brand.setCountry(request.getCountry());
+                .orElseGet(() -> {
+                    Brand newBrand = new Brand();
+                    newBrand.setUser(user);
+                    return newBrand;
+                });
+
+        if (request.getBrandName() != null) brand.setBrandName(request.getBrandName());
+        if (request.getDateOfBirth() != null) brand.setDateOfBirth(request.getDateOfBirth());
+        if (request.getCountry() != null) brand.setCountry(request.getCountry());
         brandRepository.save(brand);
 
         return ApiResponse.builder()
@@ -52,4 +56,5 @@ public class UserProfileServiceImpl implements UserProfileService {
                 .build();
     }
 }
+
 

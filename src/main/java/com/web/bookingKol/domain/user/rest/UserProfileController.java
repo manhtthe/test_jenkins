@@ -17,9 +17,10 @@ public class UserProfileController {
     private final UserProfileService userProfileService;
 
     @PreAuthorize("hasAnyRole('USER')")
-    @PutMapping("/update")
+    @PatchMapping("/update")
     public ResponseEntity<ApiResponse<?>> updateProfile(@Valid @RequestBody UpdateProfileRequest request) {
         return ResponseEntity.ok(userProfileService.updateProfile(request));
     }
 }
+
 
