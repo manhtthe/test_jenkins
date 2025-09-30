@@ -34,7 +34,7 @@ public class FileServiceImpl implements FileService {
 
     @Transactional
     @Override
-    public ApiResponse<FileDTO> uploadFile(UUID uploaderId, MultipartFile file) {
+    public FileDTO uploadFilePoint(UUID uploaderId, MultipartFile file) {
         if (file == null || file.getSize() <= 0) {
             throw new IllegalArgumentException("File must not be null or empty");
         }
@@ -67,11 +67,30 @@ public class FileServiceImpl implements FileService {
         fileUploading.setSizeBytes(file.getSize());
         fileUploading.setCreatedAt(Instant.now());
         fileRepository.save(fileUploading);
+        return fileMapper.toDto(fileUploading);
+    }
+
+    @Transactional
+    @Override
+    public ApiResponse<FileDTO> uploadOneFile(UUID uploaderId, MultipartFile file) {
         return ApiResponse.<FileDTO>builder()
                 .status(HttpStatus.OK.value())
                 .message(List.of("File uploaded successfully"))
-                .data(fileMapper.toDto(fileUploading))
+                .data(uploadFilePoint(uploaderId, file))
                 .build();
+    }
 
+    @Transactional
+    @Override
+    public ApiResponse<List<FileDTO>> uploadMultipleFiles(UUID uploaderId, List<MultipartFile> files) {
+        if (files == null || files.isEmpty()) {
+            throw new IllegalArgumentException("Files must not be null or empty");
+        }
+        List<FileDTO> fileDTOS = files.stream().map(file -> uploadFilePoint(uploaderId, file)).toList();
+        return ApiResponse.<List<FileDTO>>builder()
+                .status(HttpStatus.OK.value())
+                .message(List.of("File uploaded successfully"))
+                .data(fileDTOS)
+                .build();
     }
 }

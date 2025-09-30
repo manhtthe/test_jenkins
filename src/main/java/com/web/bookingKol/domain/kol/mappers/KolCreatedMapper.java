@@ -1,26 +1,28 @@
 package com.web.bookingKol.domain.kol.mappers;
 
-import com.web.bookingKol.domain.file.mappers.FileUsageMapper;
-import com.web.bookingKol.domain.kol.dtos.KolDetailDTO;
+import com.web.bookingKol.domain.kol.dtos.KolCreatedDTO;
 import com.web.bookingKol.domain.kol.models.KolProfile;
+import com.web.bookingKol.domain.user.models.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class KolDetailMapper {
+public class KolCreatedMapper {
     @Autowired
     private CategoryMapper categoryMapper;
-    @Autowired
-    private FileUsageMapper fileUsageMapper;
 
-    public KolDetailDTO toDto(KolProfile kol) {
+    public KolCreatedDTO toDto(KolProfile kol, User user) {
         if (kol == null) return null;
-        KolDetailDTO dto = new KolDetailDTO();
+        KolCreatedDTO dto = new KolCreatedDTO();
         dto.setId(kol.getId());
-        dto.setUserId(kol.getUser() != null ? kol.getUser().getId() : null);
-        dto.setFullName(kol.getUser() != null ? kol.getUser().getFullName() : null);
+        dto.setUserId(user.getId());
+        dto.setFullName(user.getFullName());
         dto.setDisplayName(kol.getDisplayName());
-        dto.setAvatarUrl(kol.getUser() != null ? kol.getUser().getAvatarUrl() : null);
+        dto.setEmail(user.getEmail());
+        dto.setPhone(user.getPhone());
+        dto.setAvatarUrl(user.getAvatarUrl());
+        dto.setGender(user.getGender());
+        dto.setStatus(user.getStatus());
         dto.setDob(kol.getDob());
         dto.setBio(kol.getBio());
         dto.setExperience(kol.getExperience());
@@ -31,17 +33,8 @@ public class KolDetailMapper {
         dto.setMinBookingPrice(kol.getMinBookingPrice());
         dto.setIsAvailable(kol.getIsAvailable());
         dto.setCreatedAt(kol.getCreatedAt());
-        dto.setUpdatedAt(kol.getUpdatedAt());
-        dto.setDeletedAt(kol.getDeletedAt());
-        dto.setOverallRating(kol.getOverallRating());
-        dto.setFeedbackCount(kol.getFeedbackCount());
 
         dto.setCategories(categoryMapper.toDtoSet(kol.getCategories()));
-
-        if (kol.getFileUsages() != null) {
-            dto.setFileUsageDtos(fileUsageMapper.toDtoSet(kol.getFileUsages()));
-        }
-
         return dto;
     }
 }

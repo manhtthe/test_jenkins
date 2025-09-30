@@ -2,12 +2,15 @@ package com.web.bookingKol.common.exception;
 
 import com.web.bookingKol.common.payload.ApiResponse;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindException;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -122,6 +125,42 @@ public class GlobalExceptionHandler {
                         ApiResponse.builder()
                                 .status(HttpStatus.PAYLOAD_TOO_LARGE.value())
                                 .message(List.of(exception.getMessage()))
+                                .build()
+                );
+    }
+
+    @ExceptionHandler(value = HttpMediaTypeNotSupportedException.class)
+    public ResponseEntity<ApiResponse<?>> UnsupportedMediaTypeExceptionHandler(HttpMediaTypeNotSupportedException exception) {
+        return ResponseEntity
+                .status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
+                .body(
+                        ApiResponse.builder()
+                                .status(HttpStatus.UNSUPPORTED_MEDIA_TYPE.value())
+                                .message(List.of(exception.getMessage()))
+                                .build()
+                );
+    }
+
+    @ExceptionHandler(value = ConstraintViolationException.class)
+    public ResponseEntity<ApiResponse<?>> UnsupportedMediaTypeExceptionHandler(ConstraintViolationException exception) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(
+                        ApiResponse.builder()
+                                .status(HttpStatus.BAD_REQUEST.value())
+                                .message(List.of(exception.getMessage()))
+                                .build()
+                );
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiResponse<?>> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(
+                        ApiResponse.builder()
+                                .status(HttpStatus.BAD_REQUEST.value())
+                                .message(List.of("Malformed JSON request"))
                                 .build()
                 );
     }

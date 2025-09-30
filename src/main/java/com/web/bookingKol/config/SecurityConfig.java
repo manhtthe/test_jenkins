@@ -2,6 +2,7 @@ package com.web.bookingKol.config;
 
 import com.web.bookingKol.auth.AuthEntryPointImpl;
 import com.web.bookingKol.auth.JwtAuthenticationFilter;
+import com.web.bookingKol.common.Enums;
 import com.web.bookingKol.domain.user.services.impl.UserDetailsServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -70,11 +71,11 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/auth/**").permitAll()
-                        .requestMatchers("/actuator/**").hasAuthority("SUPER_ADMIN")
+                        .requestMatchers("/actuator/**").hasAuthority(Enums.Roles.SUPER_ADMIN.name())
                         .requestMatchers("/kol-profiles/**", "/courses/**").permitAll()
                         .requestMatchers("/register/**").permitAll()
                         .requestMatchers("/password/**").permitAll()
-                        .requestMatchers("/consultation/**").permitAll()
+                        .requestMatchers("/admin/**").hasAuthority(Enums.Roles.ADMIN.name())
                         .requestMatchers(
                                 "/v3/api-docs/**",
                                 "/v3/api-docs",
