@@ -21,7 +21,7 @@ public class GeminiAdminController {
 
     private final AiConsultationLogService logService;
 
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN')")
+    @PreAuthorize("hasAnyAuthority('SUPER_ADMIN', 'ADMIN')")
     @GetMapping("/logs")
     public Page<AiConsultationLogResponse> getLogs(
             @RequestParam(required = false) String search,
