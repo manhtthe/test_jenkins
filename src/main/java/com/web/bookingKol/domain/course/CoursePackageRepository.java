@@ -15,7 +15,7 @@ public interface CoursePackageRepository extends JpaRepository<CoursePackage, UU
                 FROM CoursePackage cp
                 LEFT JOIN FETCH cp.fileUsages fu
                 LEFT JOIN FETCH fu.file f
-                WHERE cp.id = :id AND fu.targetType = :targetType
+                WHERE cp.isAvailable = true AND cp.id = :id AND fu.targetType = :targetType
             """)
     Optional<CoursePackage> findByCoursePackageId(@Param("id") UUID id, @Param("targetType") String targetType);
 }

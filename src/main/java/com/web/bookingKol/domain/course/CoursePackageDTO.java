@@ -13,6 +13,7 @@ public class CoursePackageDTO {
     private Integer price;
     private Integer discount;
     private String description;
+    private Boolean isAvailable;
 
     private Set<FileUsageDTO> fileUsageDtos;
 }

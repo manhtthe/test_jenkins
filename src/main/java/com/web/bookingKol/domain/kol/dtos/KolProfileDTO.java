@@ -13,16 +13,12 @@ public class KolProfileDTO {
     private UUID id;
     private UUID userId;
     private String displayName;
-    private String bio;
     private String country;
-    private String city;
+    private String experience;
     private String languages;
     private String rateCardNote;
     private BigDecimal minBookingPrice;
     private Boolean isAvailable;
-    private Instant createdAt;
-    private Instant updatedAt;
-    private Instant deletedAt;
     private Double overallRating;
     private Integer feedbackCount;
 

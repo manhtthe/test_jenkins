@@ -21,7 +21,7 @@ public class KolProfileRestController {
 
     @GetMapping("/all")
     public ResponseEntity<?> getAllKolProfile() {
-        return ResponseEntity.ok(kolProfileService.getAllKolProfiles());
+        return ResponseEntity.ok(kolProfileService.getAllKol());
     }
 
     @GetMapping("/kol-id/{kolId}")
@@ -31,7 +31,7 @@ public class KolProfileRestController {
 
     @GetMapping("/all-available")
     public ResponseEntity<?> getAllKolAvailableProfile() {
-        return ResponseEntity.ok(kolProfileService.getAllKolAvailableProfiles());
+        return ResponseEntity.ok(kolProfileService.getAllKolAvailable());
     }
 
     @GetMapping("/category/{categoryId}")
