@@ -75,6 +75,7 @@ public class SecurityConfig {
                         .requestMatchers("/register/**").permitAll()
                         .requestMatchers("/password/**").permitAll()
                         .requestMatchers("/consultation/**").permitAll()
+                        .requestMatchers("/admin/**").hasAuthority("ADMIN")
                         .requestMatchers(
                                 "/v3/api-docs/**",
                                 "/v3/api-docs",

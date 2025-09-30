@@ -2,20 +2,34 @@ package com.web.bookingKol.domain.kol.services.impl;
 
 import com.web.bookingKol.common.Enums;
 import com.web.bookingKol.common.payload.ApiResponse;
+import com.web.bookingKol.domain.file.FileService;
+import com.web.bookingKol.domain.file.dtos.FileDTO;
 import com.web.bookingKol.domain.file.dtos.FileUsageDTO;
 import com.web.bookingKol.domain.kol.dtos.FilterKolDTO;
 import com.web.bookingKol.domain.kol.dtos.KolDetailDTO;
 import com.web.bookingKol.domain.kol.dtos.KolProfileDTO;
+import com.web.bookingKol.domain.kol.dtos.NewKolDTO;
 import com.web.bookingKol.domain.kol.mappers.KolDetailMapper;
 import com.web.bookingKol.domain.kol.mappers.KolProfileMapper;
+import com.web.bookingKol.domain.kol.models.Category;
 import com.web.bookingKol.domain.kol.models.KolProfile;
+import com.web.bookingKol.domain.kol.repositories.CategoryRepository;
 import com.web.bookingKol.domain.kol.repositories.KolProfileRepository;
 import com.web.bookingKol.domain.kol.services.KolProfileService;
+import com.web.bookingKol.domain.user.models.Role;
+import com.web.bookingKol.domain.user.models.User;
+import com.web.bookingKol.domain.user.repositories.RoleRepository;
+import com.web.bookingKol.domain.user.repositories.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -30,6 +44,16 @@ public class KolProfileServiceImpl implements KolProfileService {
     private KolProfileMapper kolProfileMapper;
     @Autowired
     private KolDetailMapper kolProfileDetailMapper;
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    @Autowired
+    private RoleRepository roleRepository;
+    @Autowired
+    private CategoryRepository categoryRepository;
+    @Autowired
+    private FileService fileService;
 
     @Override
     public ApiResponse<KolDetailDTO> getKolProfileByUserId(UUID userId) {
@@ -171,5 +195,55 @@ public class KolProfileServiceImpl implements KolProfileService {
                         && fu.getFile() != null
                         && Enums.FileStatus.ACTIVE.name().equals(fu.getFile().getStatus()))
                 .collect(Collectors.toSet());
+    }
+
+    @Transactional
+    @Override
+    public ApiResponse<KolDetailDTO> createNewKolAccount(UUID AdminId, NewKolDTO newKolDTO, MultipartFile file) {
+        User admin = userRepository.findById(AdminId)
+                .orElseThrow(() -> new AccessDeniedException("Only admin can create new Kol accounts"));
+        Role role = roleRepository.findByKey(Enums.Roles.KOL.name())
+                .orElseThrow(() -> new RuntimeException("Role USER not found !!"));
+        //Create new user account first
+        User newKol = new User();
+        newKol.setId(UUID.randomUUID());
+        newKol.setEmail(newKolDTO.getEmail());
+        newKol.setPhone(newKolDTO.getPhone());
+        newKol.setFullName(newKolDTO.getFullName());
+        newKol.setPasswordHash(passwordEncoder.encode(newKolDTO.getPassword()));
+        newKol.setGender(newKolDTO.getGender().trim().equalsIgnoreCase(Enums.UserGender.Male.name()) ?
+                Enums.UserGender.Male.name() : Enums.UserGender.Female.name());
+        newKol.setRoles(Set.of(role));
+        newKol.setAddress(newKolDTO.getAddress());
+        if (file != null && !file.isEmpty()) {
+            FileDTO fileDTO = fileService.uploadFilePoint(admin.getId(), file);
+            newKol.setAvatarUrl(fileDTO.getFileUrl());
+        }
+        newKol.setStatus(Enums.UserStatus.ACTIVE.name());
+        newKol.setCreatedAt(Instant.now());
+        userRepository.save(newKol);
+        //Create kol profile after user account is created
+        Set<Category> categories = newKolDTO.getCategoryIds().stream()
+                .map(catId -> categoryRepository.findById(catId)
+                        .orElseThrow(() -> new RuntimeException("Category not found: " + catId)))
+                .collect(Collectors.toSet());
+        KolProfile kolProfile = new KolProfile();
+        kolProfile.setUser(newKol);
+        kolProfile.setId(UUID.randomUUID());
+        kolProfile.setCountry(newKolDTO.getCountry());
+        kolProfile.setDisplayName(newKolDTO.getDisplayName());
+        kolProfile.setExperience(newKolDTO.getExperience());
+        kolProfile.setLanguages(newKolDTO.getLanguages());
+        kolProfile.setRateCardNote(newKolDTO.getRateCardNote());
+        kolProfile.setMinBookingPrice(newKolDTO.getMinBookingPrice());
+        kolProfile.setIsAvailable(true);
+        kolProfile.setCreatedAt(Instant.now());
+        kolProfile.setCategories(categories);
+        kolProfileRepository.save(kolProfile);
+        return ApiResponse.<KolDetailDTO>builder()
+                .status(HttpStatus.CREATED.value())
+                .message(List.of("Create new kol account successfully"))
+                .data(kolProfileDetailMapper.toDto(kolProfile))
+                .build();
     }
 }

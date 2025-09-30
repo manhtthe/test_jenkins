@@ -23,6 +23,6 @@ public class FileRestController {
                                         @AuthenticationPrincipal UserDetailsImpl userDetails
     ) {
         UUID userId = userDetails.getId();
-        return ResponseEntity.ok().body(fileService.uploadFile(userId, file));
+        return ResponseEntity.ok().body(fileService.uploadOneFile(userId, file));
     }
 }
