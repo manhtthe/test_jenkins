@@ -1,14 +1,13 @@
 package com.web.bookingKol.domain.kol.services.impl;
 
 import com.web.bookingKol.common.Enums;
+import com.web.bookingKol.common.exception.UserAlreadyExistsException;
 import com.web.bookingKol.common.payload.ApiResponse;
 import com.web.bookingKol.domain.file.FileService;
 import com.web.bookingKol.domain.file.dtos.FileDTO;
 import com.web.bookingKol.domain.file.dtos.FileUsageDTO;
-import com.web.bookingKol.domain.kol.dtos.FilterKolDTO;
-import com.web.bookingKol.domain.kol.dtos.KolDetailDTO;
-import com.web.bookingKol.domain.kol.dtos.KolProfileDTO;
-import com.web.bookingKol.domain.kol.dtos.NewKolDTO;
+import com.web.bookingKol.domain.kol.dtos.*;
+import com.web.bookingKol.domain.kol.mappers.KolCreatedMapper;
 import com.web.bookingKol.domain.kol.mappers.KolDetailMapper;
 import com.web.bookingKol.domain.kol.mappers.KolProfileMapper;
 import com.web.bookingKol.domain.kol.models.Category;
@@ -30,10 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Instant;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -43,7 +39,7 @@ public class KolProfileServiceImpl implements KolProfileService {
     @Autowired
     private KolProfileMapper kolProfileMapper;
     @Autowired
-    private KolDetailMapper kolProfileDetailMapper;
+    private KolDetailMapper kolDetailMapper;
     @Autowired
     private UserRepository userRepository;
     @Autowired
@@ -53,27 +49,29 @@ public class KolProfileServiceImpl implements KolProfileService {
     @Autowired
     private CategoryRepository categoryRepository;
     @Autowired
+    private KolCreatedMapper kolCreatedMapper;
+    @Autowired
     private FileService fileService;
 
     @Override
     public ApiResponse<KolDetailDTO> getKolProfileByUserId(UUID userId) {
-        KolProfile kolProfile = kolProfileRepository.findByUserId(userId, Enums.TargetType.PORTFOLIO.name())
+        KolProfile kolProfile = kolProfileRepository.findByUserId(userId)
                 .orElseThrow(() -> new EntityNotFoundException("KolProfile not found for userId: " + userId));
         return ApiResponse.<KolDetailDTO>builder()
                 .status(HttpStatus.OK.value())
                 .message(List.of("Get kol profile success"))
-                .data(kolProfileDetailMapper.toDto(kolProfile))
+                .data(kolDetailMapper.toDto(kolProfile))
                 .build();
     }
 
     @Override
     public ApiResponse<KolDetailDTO> getKolProfileByKolId(UUID kolId) {
-        KolProfile kolProfile = kolProfileRepository.findByKolId(kolId, Enums.TargetType.PORTFOLIO.name())
+        KolProfile kolProfile = kolProfileRepository.findByKolId(kolId)
                 .orElseThrow(() -> new EntityNotFoundException("KolProfile not found for kolId: " + kolId));
         return ApiResponse.<KolDetailDTO>builder()
                 .status(HttpStatus.OK.value())
                 .message(List.of("Get kol profile by kolId success"))
-                .data(kolProfileDetailMapper.toDto(kolProfile))
+                .data(kolDetailMapper.toDto(kolProfile))
                 .build();
     }
 
@@ -199,51 +197,61 @@ public class KolProfileServiceImpl implements KolProfileService {
 
     @Transactional
     @Override
-    public ApiResponse<KolDetailDTO> createNewKolAccount(UUID AdminId, NewKolDTO newKolDTO, MultipartFile file) {
+    public ApiResponse<KolCreatedDTO> createNewKolAccount(UUID AdminId, NewKolDTO newKolDTO, MultipartFile file) {
         User admin = userRepository.findById(AdminId)
                 .orElseThrow(() -> new AccessDeniedException("Only admin can create new Kol accounts"));
         Role role = roleRepository.findByKey(Enums.Roles.KOL.name())
-                .orElseThrow(() -> new RuntimeException("Role USER not found !!"));
-        //Create new user account first
+                .orElseThrow(() -> new IllegalArgumentException("Role KOL not found !!"));
+        //Create user account for kol
         User newKol = new User();
-        newKol.setId(UUID.randomUUID());
+        if (userRepository.existsByEmail(newKolDTO.getEmail())) {
+            throw new UserAlreadyExistsException("Email already exists: " + newKolDTO.getEmail());
+        }
         newKol.setEmail(newKolDTO.getEmail());
         newKol.setPhone(newKolDTO.getPhone());
         newKol.setFullName(newKolDTO.getFullName());
         newKol.setPasswordHash(passwordEncoder.encode(newKolDTO.getPassword()));
-        newKol.setGender(newKolDTO.getGender().trim().equalsIgnoreCase(Enums.UserGender.Male.name()) ?
-                Enums.UserGender.Male.name() : Enums.UserGender.Female.name());
-        newKol.setRoles(Set.of(role));
-        newKol.setAddress(newKolDTO.getAddress());
-        if (file != null && !file.isEmpty()) {
-            FileDTO fileDTO = fileService.uploadFilePoint(admin.getId(), file);
-            newKol.setAvatarUrl(fileDTO.getFileUrl());
+        if (newKolDTO.getGender() != null) {
+            newKol.setGender(newKolDTO.getGender().trim().equalsIgnoreCase(Enums.UserGender.Male.name()) ?
+                    Enums.UserGender.Male.name() : Enums.UserGender.Female.name());
         }
+        newKol.setRoles(new LinkedHashSet<>(Collections.singletonList(role)));
+        newKol.setAddress(newKolDTO.getAddress());
         newKol.setStatus(Enums.UserStatus.ACTIVE.name());
         newKol.setCreatedAt(Instant.now());
-        userRepository.save(newKol);
+        newKol = userRepository.saveAndFlush(newKol);
         //Create kol profile after user account is created
-        Set<Category> categories = newKolDTO.getCategoryIds().stream()
-                .map(catId -> categoryRepository.findById(catId)
-                        .orElseThrow(() -> new RuntimeException("Category not found: " + catId)))
-                .collect(Collectors.toSet());
         KolProfile kolProfile = new KolProfile();
         kolProfile.setUser(newKol);
         kolProfile.setId(UUID.randomUUID());
-        kolProfile.setCountry(newKolDTO.getCountry());
         kolProfile.setDisplayName(newKolDTO.getDisplayName());
-        kolProfile.setExperience(newKolDTO.getExperience());
+        kolProfile.setBio(newKolDTO.getBio());
+        kolProfile.setCountry(newKolDTO.getCountry());
+        kolProfile.setCity(newKolDTO.getCity());
         kolProfile.setLanguages(newKolDTO.getLanguages());
         kolProfile.setRateCardNote(newKolDTO.getRateCardNote());
         kolProfile.setMinBookingPrice(newKolDTO.getMinBookingPrice());
         kolProfile.setIsAvailable(true);
         kolProfile.setCreatedAt(Instant.now());
-        kolProfile.setCategories(categories);
+        kolProfile.setDob(newKolDTO.getDob());
+        kolProfile.setExperience(newKolDTO.getExperience());
+        if (newKolDTO.getCategoryIds() != null) {
+            Set<Category> categories = newKolDTO.getCategoryIds().stream()
+                    .map(catId -> categoryRepository.findById(catId)
+                            .orElseThrow(() -> new IllegalArgumentException("Category not found: " + catId)))
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
+            kolProfile.setCategories(categories);
+        }
         kolProfileRepository.save(kolProfile);
-        return ApiResponse.<KolDetailDTO>builder()
+        if (file != null && !file.isEmpty()) {
+            FileDTO fileDTO = fileService.uploadFilePoint(admin.getId(), file);
+            newKol.setAvatarUrl(fileDTO.getFileUrl());
+            userRepository.save(newKol);
+        }
+        return ApiResponse.<KolCreatedDTO>builder()
                 .status(HttpStatus.CREATED.value())
                 .message(List.of("Create new kol account successfully"))
-                .data(kolProfileDetailMapper.toDto(kolProfile))
+                .data(kolCreatedMapper.toDto(kolProfile, kolProfile.getUser()))
                 .build();
     }
 }

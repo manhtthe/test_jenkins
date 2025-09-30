@@ -3,6 +3,7 @@ package com.web.bookingKol.domain.admin;
 import com.web.bookingKol.domain.kol.dtos.NewKolDTO;
 import com.web.bookingKol.domain.kol.services.KolProfileService;
 import com.web.bookingKol.domain.user.models.UserDetailsImpl;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +25,7 @@ public class AdminKolRestController {
     @PostMapping("/create-new-kol")
     public ResponseEntity<?> createNewKolAccount(@AuthenticationPrincipal UserDetailsImpl userDetails,
                                                  @RequestPart("file") MultipartFile file,
-                                                 @RequestPart NewKolDTO newKolDTO) {
+                                                 @RequestPart @Valid NewKolDTO newKolDTO) {
         UUID AdminId = userDetails.getId();
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(kolProfileService.createNewKolAccount(AdminId, newKolDTO, file));

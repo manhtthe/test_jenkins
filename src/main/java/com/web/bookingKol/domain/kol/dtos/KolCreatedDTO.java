@@ -1,6 +1,5 @@
 package com.web.bookingKol.domain.kol.dtos;
 
-import com.web.bookingKol.domain.file.dtos.FileUsageDTO;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -10,12 +9,16 @@ import java.util.Set;
 import java.util.UUID;
 
 @Data
-public class KolDetailDTO {
+public class KolCreatedDTO {
     private UUID id;
     private UUID userId;
     private String fullName;
     private String displayName;
+    private String email;
+    private String phone;
     private String avatarUrl;
+    private String gender;
+    private String status;
     private Date dob;
     private String bio;
     private String experience;
@@ -26,11 +29,6 @@ public class KolDetailDTO {
     private BigDecimal minBookingPrice;
     private Boolean isAvailable;
     private Instant createdAt;
-    private Instant updatedAt;
-    private Instant deletedAt;
-    private Double overallRating;
-    private Integer feedbackCount;
 
     private Set<CategoryDTO> categories;
-    private Set<FileUsageDTO> fileUsageDtos;
 }

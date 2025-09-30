@@ -1,10 +1,7 @@
 package com.web.bookingKol.domain.kol.services;
 
 import com.web.bookingKol.common.payload.ApiResponse;
-import com.web.bookingKol.domain.kol.dtos.FilterKolDTO;
-import com.web.bookingKol.domain.kol.dtos.KolDetailDTO;
-import com.web.bookingKol.domain.kol.dtos.KolProfileDTO;
-import com.web.bookingKol.domain.kol.dtos.NewKolDTO;
+import com.web.bookingKol.domain.kol.dtos.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -25,5 +22,5 @@ public interface KolProfileService {
 
     ApiResponse<List<KolProfileDTO>> getAllKolWithFilter(FilterKolDTO filterKolDTO);
 
-    ApiResponse<KolDetailDTO> createNewKolAccount(UUID AdminId, NewKolDTO newKolDTO, MultipartFile file);
+    ApiResponse<KolCreatedDTO> createNewKolAccount(UUID AdminId, NewKolDTO newKolDTO, MultipartFile file);
 }
