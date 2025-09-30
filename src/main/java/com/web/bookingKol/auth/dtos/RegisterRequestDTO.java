@@ -27,8 +27,8 @@ public class RegisterRequestDTO implements Serializable {
     @Email(message = "Email không hợp lệ")
     private String email;
 
-    @NotBlank(message = "Mật khẩu không được để trống")
-    @Pattern(regexp = "^[0-9]{9,11}$", message = "Số điện thoại phải từ 9–11 chữ số")
-    private String phone;
+    @NotBlank(message = "Họ tên không được để trống")
+    @Size(max = 255, message = "Họ tên tối đa 255 ký tự")
+    private String fullName;
 
 }

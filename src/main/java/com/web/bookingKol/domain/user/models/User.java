@@ -98,12 +98,6 @@ public class User {
     @Column(name = "introduction", length = 1000)
     private String introduction;
 
-    @Column(name = "date_of_birth")
-    private java.time.LocalDate dateOfBirth;
-
-    @Column(name = "country", length = 255)
-    private String country;
-
 
 
     @OneToMany(mappedBy = "user")

@@ -59,6 +59,12 @@ public class Brand {
     @Column(name = "contact_phone", length = 50)
     private String contactPhone;
 
+    @Column(name = "date_of_birth")
+    private java.time.LocalDate dateOfBirth;
+
+    @Column(name = "country", length = 255)
+    private String country;
+
     @ColumnDefault("now()")
     @Column(name = "created_at")
     private OffsetDateTime createdAt;

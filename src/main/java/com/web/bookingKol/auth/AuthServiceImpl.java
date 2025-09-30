@@ -87,14 +87,10 @@ public class AuthServiceImpl implements AuthService {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new UserAlreadyExistsException("Email này đã được sử dụng");
         }
-        if (userRepository.existsByPhone(request.getPhone())) {
-            throw new UserAlreadyExistsException("Số điện thoại này đã được sử dụng");
-        }
-
         User user = new User();
         user.setEmail(request.getEmail());
         user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
-        user.setPhone(request.getPhone());
+        user.setFullName(request.getFullName());
         user.setStatus(UserStatus.PENDING.name());
         user.setCreatedAt(Instant.now());
         userRepository.save(user);
