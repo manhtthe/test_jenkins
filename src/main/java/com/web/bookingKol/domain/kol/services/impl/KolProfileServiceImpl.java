@@ -7,6 +7,9 @@ import com.web.bookingKol.domain.file.FileService;
 import com.web.bookingKol.domain.file.dtos.FileDTO;
 import com.web.bookingKol.domain.file.dtos.FileUsageDTO;
 import com.web.bookingKol.domain.file.mappers.FileMapper;
+import com.web.bookingKol.domain.file.mappers.FileUsageMapper;
+import com.web.bookingKol.domain.file.models.FileUsage;
+import com.web.bookingKol.domain.file.repositories.FileUsageRepository;
 import com.web.bookingKol.domain.kol.dtos.*;
 import com.web.bookingKol.domain.kol.mappers.KolCreatedMapper;
 import com.web.bookingKol.domain.kol.mappers.KolDetailMapper;
@@ -59,6 +62,10 @@ public class KolProfileServiceImpl implements KolProfileService {
     private FileService fileService;
     @Autowired
     private FileMapper fileMapper;
+    @Autowired
+    private FileUsageRepository fileUsageRepository;
+    @Autowired
+    private FileUsageMapper fileUsageMapper;
 
     @Override
     public ApiResponse<KolDetailDTO> getKolProfileByUserId(UUID userId) {
@@ -209,7 +216,7 @@ public class KolProfileServiceImpl implements KolProfileService {
      *
      * @param AdminId    the ID of the admin user creating the KOL
      * @param newKolDTO  the details of the new KOL to create
-     * @param fileAvatar       (optional) avatar image file for the KOL
+     * @param fileAvatar (optional) avatar image file for the KOL
      * @return ApiResponse containing the created KOL details
      * @throws AccessDeniedException      if the user is not an admin
      * @throws UserAlreadyExistsException if the email already exists
@@ -267,7 +274,7 @@ public class KolProfileServiceImpl implements KolProfileService {
             FileDTO fileDTO = fileService.uploadFilePoint(admin.getId(), fileAvatar);
             newKol.setAvatarUrl(fileDTO.getFileUrl());
             // Link avatar file to kol profile
-            fileService.createFileUsage(fileMapper.toEntity(fileDTO), kolProfile.getId(), Enums.TargetType.PORTFOLIO.name(), false);
+            fileService.createFileUsage(fileMapper.toEntity(fileDTO), kolProfile.getId(), Enums.TargetType.AVATAR.name(), false);
             userRepository.save(newKol);
         }
         return ApiResponse.<KolCreatedDTO>builder()
@@ -285,10 +292,10 @@ public class KolProfileServiceImpl implements KolProfileService {
      * @param AdminId      the ID of the admin user performing the update
      * @param kolId        the ID of the KOL profile to update
      * @param updateKolDTO the updated details for the KOL
-     * @param fileAvatar         (optional) new avatar image file for the KOL
+     * @param fileAvatar   (optional) upload new avatar image file for the KOL
      * @return ApiResponse containing the updated KOL details
-     * @throws AccessDeniedException    if the user is not an admin
-     * @throws EntityNotFoundException  if the KOL profile is not found
+     * @throws AccessDeniedException   if the user is not an admin
+     * @throws EntityNotFoundException if the KOL profile is not found
      */
     @Transactional
     @Override
@@ -299,13 +306,15 @@ public class KolProfileServiceImpl implements KolProfileService {
                 .orElseThrow(() -> new EntityNotFoundException("KolProfile not found for Kol Id: " + kolId));
         User kolUser = kolProfile.getUser();
         // Update kol user info and kol profile info
-        BeanUtils.copyProperties(updateKolDTO, kolUser, getNullPropertyNames(updateKolDTO));
-        BeanUtils.copyProperties(updateKolDTO, kolProfile, getNullPropertyNames(updateKolDTO));
+        if (updateKolDTO != null) {
+            BeanUtils.copyProperties(updateKolDTO, kolUser, getNullPropertyNames(updateKolDTO));
+            BeanUtils.copyProperties(updateKolDTO, kolProfile, getNullPropertyNames(updateKolDTO));
+        }
         if (fileAvatar != null && !fileAvatar.isEmpty()) {
             FileDTO fileDTO = fileService.uploadFilePoint(admin.getId(), fileAvatar);
             kolUser.setAvatarUrl(fileDTO.getFileUrl());
             // Link avatar file to kol profile
-            fileService.createFileUsage(fileMapper.toEntity(fileDTO), kolProfile.getId(), Enums.TargetType.PORTFOLIO.name(), false);
+            fileService.createFileUsage(fileMapper.toEntity(fileDTO), kolProfile.getId(), Enums.TargetType.AVATAR.name(), false);
         }
         kolProfile.setUpdatedAt(Instant.now());
         userRepository.save(kolUser);
@@ -334,5 +343,74 @@ public class KolProfileServiceImpl implements KolProfileService {
         }
         String[] result = new String[emptyNames.size()];
         return emptyNames.toArray(result);
+    }
+
+    @Transactional
+    @Override
+    public ApiResponse<List<FileUsageDTO>> uploadKolImagePortfolio(UUID uploaderId, UUID kolId, List<MultipartFile> files) {
+        if (!userRepository.existsById(uploaderId)) {
+            throw new EntityNotFoundException("Uploader not found: " + uploaderId);
+        }
+        if (!kolProfileRepository.existsById(kolId)) {
+            throw new EntityNotFoundException("KolProfile not found for Kol Id: " + kolId);
+        }
+        if (files != null && !files.isEmpty()) {
+            List<FileUsageDTO> fileUsageDTOS = new ArrayList<>();
+            for (MultipartFile file : files) {
+                FileDTO fileDTO = fileService.uploadFilePoint(uploaderId, file);
+                FileUsageDTO fileUsageDTO = fileService.createFileUsage(fileMapper.toEntity(fileDTO), kolId, Enums.TargetType.PORTFOLIO.name(), false);
+                fileUsageDTOS.add(fileUsageDTO);
+            }
+            return ApiResponse.<List<FileUsageDTO>>builder()
+                    .status(HttpStatus.OK.value())
+                    .message(List.of("Upload media files success: " + fileUsageDTOS.size() + " files"))
+                    .data(fileUsageDTOS)
+                    .build();
+        } else {
+            return ApiResponse.<List<FileUsageDTO>>builder()
+                    .status(HttpStatus.BAD_REQUEST.value())
+                    .message(List.of("No files to upload"))
+                    .data(null)
+                    .build();
+        }
+    }
+
+    @Override
+    public ApiResponse<List<FileUsageDTO>> getAllKolMediaFiles(UUID kolId) {
+        if (!kolProfileRepository.existsById(kolId)) {
+            throw new EntityNotFoundException("KolProfile not found for Kol Id: " + kolId);
+        }
+        List<FileUsageDTO> kolPortfolios = fileUsageMapper.toDtoList(fileUsageRepository.findAllImageAndVideoActiveByKolId(kolId));
+        if (kolPortfolios == null) {
+            return ApiResponse.<List<FileUsageDTO>>builder()
+                    .status(HttpStatus.NOT_FOUND.value())
+                    .message(List.of("No files found"))
+                    .data(null)
+                    .build();
+        }
+        return ApiResponse.<List<FileUsageDTO>>builder()
+                .status(HttpStatus.OK.value())
+                .message(List.of("Get kol portfolios and avatars success: " + kolPortfolios.size() + " files"))
+                .data(kolPortfolios)
+                .build();
+    }
+
+    @Override
+    public ApiResponse<?> activateOrDeactivateKolMediaFile(UUID kolId, List<UUID> fileUsageIds, boolean isActive) {
+        if (!kolProfileRepository.existsById(kolId)) {
+            throw new EntityNotFoundException("KolProfile not found for Kol Id: " + kolId);
+        }
+        List<FileUsage> fileUsages = fileUsageRepository.findAllById(fileUsageIds);
+        if (fileUsages.size() != fileUsageIds.size()) {
+            throw new EntityNotFoundException("Some FileUsages not found for provided IDs");
+        }
+        fileUsages.forEach(fileUsage -> fileUsage.setIsActive(isActive));
+        fileUsageRepository.saveAll(fileUsages);
+        String action = isActive ? "activated" : "deactivated";
+        return ApiResponse.builder()
+                .status(HttpStatus.OK.value())
+                .message(List.of("Successfully " + action + " " + fileUsages.size() + " media files"))
+                .data(null)
+                .build();
     }
 }

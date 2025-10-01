@@ -1,6 +1,7 @@
 package com.web.bookingKol.domain.kol.services;
 
 import com.web.bookingKol.common.payload.ApiResponse;
+import com.web.bookingKol.domain.file.dtos.FileUsageDTO;
 import com.web.bookingKol.domain.kol.dtos.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,4 +26,10 @@ public interface KolProfileService {
     ApiResponse<KolCreatedDTO> createNewKolAccount(UUID AdminId, NewKolDTO newKolDTO, MultipartFile fileAvatar);
 
     ApiResponse<KolDetailDTO> updateKolProfile(UUID AdminId, UUID kolId, UpdateKolDTO updateKolDTO, MultipartFile fileAvatar);
+
+    ApiResponse<List<FileUsageDTO>> uploadKolImagePortfolio(UUID uploaderId, UUID kolId, List<MultipartFile> files);
+
+    ApiResponse<List<FileUsageDTO>> getAllKolMediaFiles(UUID kolId);
+
+    ApiResponse<?> activateOrDeactivateKolMediaFile(UUID kolId, List<UUID> fileUsageIds, boolean isActive);
 }

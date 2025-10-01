@@ -12,6 +12,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -29,13 +30,42 @@ public class AdminKolRestController {
                 .body(kolProfileService.createNewKolAccount(AdminId, newKolDTO, fileAvatar));
     }
 
-    @PutMapping("/update-kol-profile/{kolId}")
+    @PutMapping("/update/{kolId}")
     public ResponseEntity<?> updateKolProfile(@AuthenticationPrincipal UserDetailsImpl userDetails,
                                               @PathVariable UUID kolId,
                                               @RequestPart(value = "fileAvatar", required = false) MultipartFile fileAvatar,
-                                              @RequestPart @Valid UpdateKolDTO updateKolDTO) {
+                                              @RequestPart(value = "updateKolDTO", required = false) UpdateKolDTO updateKolDTO) {
         UUID AdminId = userDetails.getId();
         return ResponseEntity.status(HttpStatus.OK)
                 .body(kolProfileService.updateKolProfile(AdminId, kolId, updateKolDTO, fileAvatar));
+    }
+
+    @PostMapping("/medias/upload/{kolId}")
+    public ResponseEntity<?> uploadKolImagePortfolio(@AuthenticationPrincipal UserDetailsImpl userDetails,
+                                                     @PathVariable UUID kolId,
+                                                     @RequestParam("files") List<MultipartFile> files) {
+        UUID AdminId = userDetails.getId();
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(kolProfileService.uploadKolImagePortfolio(AdminId, kolId, files));
+    }
+
+    @GetMapping("/medias/all/{kolId}")
+    public ResponseEntity<?> getAllKol(@PathVariable UUID kolId) {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(kolProfileService.getAllKolMediaFiles(kolId));
+    }
+
+    @PutMapping("/medias/activate/{kolId}")
+    public ResponseEntity<?> activateKolMediaFile(@PathVariable UUID kolId,
+                                                  @RequestParam List<UUID> fileUsageIds) {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(kolProfileService.activateOrDeactivateKolMediaFile(kolId, fileUsageIds, true));
+    }
+
+    @PutMapping("/medias/deactivate/{kolId}")
+    public ResponseEntity<?> deactivateKolMediaFile(@PathVariable UUID kolId,
+                                                    @RequestParam List<UUID> fileUsageIds) {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(kolProfileService.activateOrDeactivateKolMediaFile(kolId, fileUsageIds, false));
     }
 }
