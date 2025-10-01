@@ -33,11 +33,10 @@ public class AdminKolRestController {
     @PutMapping("/update/{kolId}")
     public ResponseEntity<?> updateKolProfile(@AuthenticationPrincipal UserDetailsImpl userDetails,
                                               @PathVariable UUID kolId,
-                                              @RequestPart(value = "fileAvatar", required = false) MultipartFile fileAvatar,
-                                              @RequestPart(value = "updateKolDTO", required = false) UpdateKolDTO updateKolDTO) {
+                                              @RequestPart(value = "updateKolDTO") UpdateKolDTO updateKolDTO) {
         UUID AdminId = userDetails.getId();
         return ResponseEntity.status(HttpStatus.OK)
-                .body(kolProfileService.updateKolProfile(AdminId, kolId, updateKolDTO, fileAvatar));
+                .body(kolProfileService.updateKolProfile(AdminId, kolId, updateKolDTO));
     }
 
     @PostMapping("/medias/upload/{kolId}")
@@ -46,7 +45,7 @@ public class AdminKolRestController {
                                                      @RequestParam("files") List<MultipartFile> files) {
         UUID AdminId = userDetails.getId();
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(kolProfileService.uploadKolImagePortfolio(AdminId, kolId, files));
+                .body(kolProfileService.uploadKolMedias(AdminId, kolId, files));
     }
 
     @GetMapping("/medias/all/{kolId}")
@@ -67,5 +66,21 @@ public class AdminKolRestController {
                                                     @RequestParam List<UUID> fileUsageIds) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(kolProfileService.activateOrDeactivateKolMediaFile(kolId, fileUsageIds, false));
+    }
+
+    @PutMapping("/avatar/change/existed-image/{kolId}")
+    public ResponseEntity<?> setAvatarKolWithExistedFile(@PathVariable UUID kolId,
+                                                         @RequestParam UUID fileId) {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(kolProfileService.setAvatarWithExistedImage(kolId, fileId));
+    }
+
+    @PostMapping("/avatar/change/new-image/{kolId}")
+    public ResponseEntity<?> setAvatarKolWithUploadNewImage(@AuthenticationPrincipal UserDetailsImpl userDetails,
+                                                            @PathVariable UUID kolId,
+                                                            @RequestParam("fileAvatar") MultipartFile fileAvatar) {
+        UUID adminId = userDetails.getId();
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(kolProfileService.setAvatarWithUploadNewImage(adminId, kolId, fileAvatar));
     }
 }

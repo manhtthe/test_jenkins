@@ -25,11 +25,15 @@ public interface KolProfileService {
 
     ApiResponse<KolCreatedDTO> createNewKolAccount(UUID AdminId, NewKolDTO newKolDTO, MultipartFile fileAvatar);
 
-    ApiResponse<KolDetailDTO> updateKolProfile(UUID AdminId, UUID kolId, UpdateKolDTO updateKolDTO, MultipartFile fileAvatar);
+    ApiResponse<KolDetailDTO> updateKolProfile(UUID AdminId, UUID kolId, UpdateKolDTO updateKolDTO);
 
-    ApiResponse<List<FileUsageDTO>> uploadKolImagePortfolio(UUID uploaderId, UUID kolId, List<MultipartFile> files);
+    ApiResponse<List<FileUsageDTO>> uploadKolMedias(UUID uploaderId, UUID kolId, List<MultipartFile> files);
 
     ApiResponse<List<FileUsageDTO>> getAllKolMediaFiles(UUID kolId);
 
     ApiResponse<?> activateOrDeactivateKolMediaFile(UUID kolId, List<UUID> fileUsageIds, boolean isActive);
+
+    ApiResponse<FileUsageDTO> setAvatarWithExistedImage(UUID kolId, UUID fileId);
+
+    ApiResponse<FileUsageDTO> setAvatarWithUploadNewImage(UUID adminId, UUID kolId, MultipartFile fileAvatar);
 }

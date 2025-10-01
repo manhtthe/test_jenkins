@@ -154,13 +154,13 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<ApiResponse<?>> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
+    public ResponseEntity<ApiResponse<?>> handleHttpMessageNotReadableException(HttpMessageNotReadableException exception) {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(
                         ApiResponse.builder()
                                 .status(HttpStatus.BAD_REQUEST.value())
-                                .message(List.of("Malformed JSON request"))
+                                .message(List.of("Malformed JSON request" + exception))
                                 .build()
                 );
     }
