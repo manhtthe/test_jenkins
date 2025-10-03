@@ -299,7 +299,7 @@ public class KolProfileServiceImpl implements KolProfileService {
      * Only an admin user can perform this operation.
      * If a new avatar file is provided, it will be uploaded and linked to the KOL profile.
      *
-     * @param AdminId      the ID of the admin user performing the update
+     * @param changerId    the ID of the admin/Kol performing the update
      * @param kolId        the ID of the KOL profile to update
      * @param updateKolDTO the updated details for the KOL
      * @return ApiResponse containing the updated KOL details
@@ -308,9 +308,8 @@ public class KolProfileServiceImpl implements KolProfileService {
      */
     @Transactional
     @Override
-    public ApiResponse<KolDetailDTO> updateKolProfile(UUID AdminId, UUID kolId, UpdateKolDTO updateKolDTO) {
-        KolProfile kolProfile = kolProfileRepository.findById(kolId)
-                .orElseThrow(() -> new EntityNotFoundException("KolProfile not found for Kol Id: " + kolId));
+    public ApiResponse<KolDetailDTO> updateKolProfile(UUID changerId, UUID kolId, UpdateKolDTO updateKolDTO) {
+        KolProfile kolProfile = validateAndGetKolProfile(changerId, kolId);
         User kolUser = kolProfile.getUser();
         // Update kol user info and kol profile info
         if (updateKolDTO != null) {
@@ -349,17 +348,12 @@ public class KolProfileServiceImpl implements KolProfileService {
     @Transactional
     @Override
     public ApiResponse<List<FileUsageDTO>> uploadKolMedias(UUID uploaderId, UUID kolId, List<MultipartFile> files) {
-        if (!userRepository.existsById(uploaderId)) {
-            throw new EntityNotFoundException("Uploader not found: " + uploaderId);
-        }
-        if (!kolProfileRepository.existsById(kolId)) {
-            throw new EntityNotFoundException("KolProfile not found for Kol Id: " + kolId);
-        }
+        KolProfile kolProfile = validateAndGetKolProfile(uploaderId, kolId);
         if (files != null && !files.isEmpty()) {
             List<FileUsageDTO> fileUsageDTOS = new ArrayList<>();
             for (MultipartFile file : files) {
                 FileDTO fileDTO = fileService.uploadFilePoint(uploaderId, file);
-                FileUsageDTO fileUsageDTO = fileService.createFileUsage(fileMapper.toEntity(fileDTO), kolId, Enums.TargetType.PORTFOLIO.name(), false);
+                FileUsageDTO fileUsageDTO = fileService.createFileUsage(fileMapper.toEntity(fileDTO), kolProfile.getId(), Enums.TargetType.PORTFOLIO.name(), false);
                 fileUsageDTOS.add(fileUsageDTO);
             }
             return ApiResponse.<List<FileUsageDTO>>builder()
@@ -396,14 +390,25 @@ public class KolProfileServiceImpl implements KolProfileService {
                 .build();
     }
 
+    /**
+     * Activate or deactivate KOL media files based on the provided file usage IDs.
+     * Only files associated with the KOL's portfolio can be modified.
+     *
+     * @param kolId        the ID of the KOL whose media files are to be modified
+     * @param fileUsageIds the list of file usage IDs to activate/deactivate
+     * @param isActive     true to activate, false to deactivate
+     * @return ApiResponse indicating the result of the operation
+     * @throws EntityNotFoundException if the KOL profile or any file usage is not found
+     */
     @Override
     public ApiResponse<?> activateOrDeactivateKolMediaFile(UUID kolId, List<UUID> fileUsageIds, boolean isActive) {
         if (!kolProfileRepository.existsById(kolId)) {
             throw new EntityNotFoundException("KolProfile not found for Kol Id: " + kolId);
         }
-        List<FileUsage> fileUsages = fileUsageRepository.findAllById(fileUsageIds);
+        List<FileUsage> fileUsages = fileUsageRepository.findAllById(fileUsageIds).stream()
+                .filter(fu -> fu.getTargetType().equals(Enums.TargetType.PORTFOLIO.name())).toList();
         if (fileUsages.size() != fileUsageIds.size()) {
-            throw new EntityNotFoundException("Some FileUsages not found for provided IDs");
+            throw new EntityNotFoundException("Some PORTFOLIO File not found for provided IDs" + fileUsages.size() + "/" + fileUsageIds.size());
         }
         fileUsages.forEach(fileUsage -> fileUsage.setIsActive(isActive));
         fileUsageRepository.saveAll(fileUsages);
@@ -458,12 +463,13 @@ public class KolProfileServiceImpl implements KolProfileService {
                 .build();
     }
 
+    @Transactional
     @Override
-    public ApiResponse<FileUsageDTO> setAvatarWithUploadNewImage(UUID adminId, UUID kolId, MultipartFile fileAvatar) {
-        User admin = userRepository.findById(adminId)
-                .orElseThrow(() -> new AccessDeniedException("Only admin can create new Kol accounts"));
-        KolProfile kolProfile = kolProfileRepository.findById(kolId)
-                .orElseThrow(() -> new EntityNotFoundException("KolProfile not found for Kol Id: " + kolId));
+    public ApiResponse<FileUsageDTO> setAvatarWithUploadNewImage(UUID changerId, UUID kolId, MultipartFile fileAvatar) {
+        if (fileAvatar.isEmpty() || fileAvatar.getSize() == 0) {
+            throw new IllegalArgumentException("File is empty");
+        }
+        KolProfile kolProfile = validateAndGetKolProfile(changerId, kolId);
         kolProfile.getFileUsages().stream()
                 .filter(fu -> fu.getIsActive() && fu.getTargetType().equals(Enums.TargetType.AVATAR.name()))
                 .findAny()
@@ -475,7 +481,7 @@ public class KolProfileServiceImpl implements KolProfileService {
         if (!fileValidator.isImage(fileAvatar)) {
             throw new IllegalArgumentException("File is not an image");
         }
-        FileDTO fileDTO = fileService.uploadFilePoint(admin.getId(), fileAvatar);
+        FileDTO fileDTO = fileService.uploadFilePoint(changerId, fileAvatar);
         kolUser.setAvatarUrl(fileDTO.getFileUrl());
         // Link avatar file to kol profile
         FileUsageDTO fileUsageDTO = fileService.createFileUsage(fileMapper.toEntity(fileDTO), kolProfile.getId(), Enums.TargetType.AVATAR.name(), false);
@@ -484,6 +490,109 @@ public class KolProfileServiceImpl implements KolProfileService {
                 .status(HttpStatus.OK.value())
                 .message(List.of("Set avatar successfully"))
                 .data(fileUsageDTO)
+                .build();
+    }
+
+    @Transactional
+    @Override
+    public ApiResponse<KolDetailDTO> addCategoryForKol(UUID changerId, UUID kolId, UUID categoryId) {
+        if (categoryId == null) {
+            throw new IllegalArgumentException("CategoryId cannot be null");
+        }
+        Category category = categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new EntityNotFoundException("Category not found: " + categoryId));
+        KolProfile kolProfile = validateAndGetKolProfile(changerId, kolId);
+        kolProfile.getCategories().stream()
+                .filter(ca -> ca.getId().equals(categoryId))
+                .findAny()
+                .ifPresent(ca -> {
+                    throw new IllegalArgumentException("Category already exists for this kol: " + categoryId);
+                });
+        kolProfile.getCategories().add(category);
+        kolProfileRepository.save(kolProfile);
+        return ApiResponse.<KolDetailDTO>builder()
+                .status(HttpStatus.OK.value())
+                .message(List.of("Add category to kol successfully"))
+                .data(kolDetailMapper.toDto(kolProfile))
+                .build();
+    }
+
+    @Transactional
+    @Override
+    public ApiResponse<KolDetailDTO> removeCategoryForKol(UUID changerId, UUID kolId, UUID categoryId) {
+        if (categoryId == null) {
+            throw new IllegalArgumentException("CategoryId cannot be null");
+        }
+        if (!categoryRepository.existsById(categoryId)) {
+            throw new EntityNotFoundException("Category not found: " + categoryId);
+        }
+        KolProfile kolProfile = validateAndGetKolProfile(changerId, kolId);
+        Category toRemove = kolProfile.getCategories().stream()
+                .filter(ca -> ca.getId().equals(categoryId))
+                .findAny()
+                .orElseThrow(() -> new IllegalArgumentException("Category not found for this kol:" + categoryId));
+        kolProfile.getCategories().remove(toRemove);
+        kolProfileRepository.save(kolProfile);
+        return ApiResponse.<KolDetailDTO>builder()
+                .status(HttpStatus.OK.value())
+                .message(List.of("Remove category from kol successfully"))
+                .data(kolDetailMapper.toDto(kolProfile))
+                .build();
+    }
+
+    private KolProfile validateAndGetKolProfile(UUID changerId, UUID kolId) {
+        User changer = userRepository.findById(changerId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found: " + changerId));
+        KolProfile kolProfile = kolProfileRepository.findById(kolId)
+                .orElseThrow(() -> new EntityNotFoundException("Kol not found for Kol Id: " + kolId));
+        boolean isAdmin = changer.getRoles().stream().anyMatch(role -> role.getKey().equals(Enums.Roles.ADMIN.name()));
+        boolean isSelfKol = changer.getKolProfile() != null && changer.getKolProfile().getId().equals(kolId);
+        if (!isAdmin && !isSelfKol) {
+            throw new AccessDeniedException("Only admin or the kol himself can do this operation!");
+        }
+        return kolProfile;
+    }
+
+    @Override
+    public KolProfile getKolProfileEntityByUserId(UUID userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found for Id: " + userId));
+        return user.getKolProfile();
+    }
+
+    @Override
+    public ApiResponse<FileUsageDTO> setCoverImage(UUID kolId, UUID fileId) {
+        KolProfile kolProfile = kolProfileRepository.findById(kolId)
+                .orElseThrow(() -> new EntityNotFoundException("KolProfile not found for Kol Id: " + kolId));
+        File file = fileRepository.findById(fileId)
+                .orElseThrow(() -> new EntityNotFoundException("File not found for ID: " + fileId));
+        if (!file.getFileType().equals(Enums.FileType.IMAGE.name())) {
+            throw new IllegalArgumentException("File is not an image for ID: " + fileId);
+        }
+        if (!file.getStatus().equals(Enums.FileStatus.ACTIVE.name())) {
+            throw new IllegalArgumentException("File is not active for ID: " + fileId);
+        }
+        FileUsage fileUsage = file.getFileUsages().stream()
+                .filter(fu -> fu.getTargetId().equals(kolId) && fu.getTargetType().equals(Enums.TargetType.PORTFOLIO.name()))
+                .findAny()
+                .orElseThrow(() -> new IllegalArgumentException("File is not associated with this Kol"));
+        if (fileUsage.getTargetType().equals(Enums.TargetType.PORTFOLIO.name())) {
+            kolProfile.getFileUsages().stream()
+                    .filter(fu -> fu.getIsActive() && fu.getIsCover())
+                    .findAny()
+                    .ifPresent(fu -> {
+                        fu.setIsCover(false);
+                        fileUsageRepository.save(fu);
+                    });
+            fileUsage.setIsCover(true);
+            fileUsageRepository.save(fileUsage);
+        } else {
+            throw new IllegalArgumentException("File is not a portfolio image of this Kol");
+        }
+        return ApiResponse.<FileUsageDTO>builder()
+                .status(HttpStatus.OK.value())
+                .message(List.of("Set cover image successfully"))
+                .data(fileUsageMapper.toDto(fileUsage))
                 .build();
     }
 }

@@ -33,7 +33,7 @@ public class AdminKolRestController {
     @PutMapping("/update/{kolId}")
     public ResponseEntity<?> updateKolProfile(@AuthenticationPrincipal UserDetailsImpl userDetails,
                                               @PathVariable UUID kolId,
-                                              @RequestPart(value = "updateKolDTO") UpdateKolDTO updateKolDTO) {
+                                              @RequestBody UpdateKolDTO updateKolDTO) {
         UUID AdminId = userDetails.getId();
         return ResponseEntity.status(HttpStatus.OK)
                 .body(kolProfileService.updateKolProfile(AdminId, kolId, updateKolDTO));
@@ -68,6 +68,13 @@ public class AdminKolRestController {
                 .body(kolProfileService.activateOrDeactivateKolMediaFile(kolId, fileUsageIds, false));
     }
 
+    @PutMapping("/cover-image/{kolId}")
+    public ResponseEntity<?> setCoverImage(@PathVariable UUID kolId,
+                                           @RequestParam UUID fileId) {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(kolProfileService.setCoverImage(kolId, fileId));
+    }
+
     @PutMapping("/avatar/change/existed-image/{kolId}")
     public ResponseEntity<?> setAvatarKolWithExistedFile(@PathVariable UUID kolId,
                                                          @RequestParam UUID fileId) {
@@ -82,5 +89,23 @@ public class AdminKolRestController {
         UUID adminId = userDetails.getId();
         return ResponseEntity.status(HttpStatus.OK)
                 .body(kolProfileService.setAvatarWithUploadNewImage(adminId, kolId, fileAvatar));
+    }
+
+    @PostMapping("/category/add/{kolId}")
+    public ResponseEntity<?> addCategoryForKol(@AuthenticationPrincipal UserDetailsImpl userDetails,
+                                               @PathVariable UUID kolId,
+                                               @RequestParam UUID categoryId) {
+        UUID adminId = userDetails.getId();
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(kolProfileService.addCategoryForKol(adminId, kolId, categoryId));
+    }
+
+    @DeleteMapping("/category/remove/{kolId}")
+    public ResponseEntity<?> removeCategoryForKol(@AuthenticationPrincipal UserDetailsImpl userDetails,
+                                                  @PathVariable UUID kolId,
+                                                  @RequestParam UUID categoryId) {
+        UUID adminId = userDetails.getId();
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(kolProfileService.removeCategoryForKol(adminId, kolId, categoryId));
     }
 }

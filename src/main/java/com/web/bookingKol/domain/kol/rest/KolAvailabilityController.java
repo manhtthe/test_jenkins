@@ -22,7 +22,7 @@ public class KolAvailabilityController {
 
     private final KolAvailabilityService availabilityService;
 
-    @PreAuthorize("hasRole('KOL')")
+    @PreAuthorize("hasAuthority('KOL')")
     @GetMapping("/{userId}/schedule")
     public ResponseEntity<ApiResponse<List<KolAvailabilityDTO>>> getKolSchedule(
             @PathVariable UUID userId,
