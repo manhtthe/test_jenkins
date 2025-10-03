@@ -2,8 +2,8 @@ version: "3.9"
 
 services:
   app:
-    image: nguyenthephong/bookingkol_be:1.2
-    container_name: bookingkol_be
+    image: nguyenthephong/bookingkol_be:1.2.3
+    container_name: bookingkol_be_1.2.3
     restart: always
     build:
       context: .
@@ -23,3 +23,7 @@ services:
       - MAIL_HOST:${MAIL_HOST}
       - MAIL_PORT:${MAIL_PORT}
       - GEMINI_API_KEY:${GEMINI_API_KEY}
+      - SUPABASE_ANON_URL:${SUPABASE_ANON_URL}
+      - SUPABASE_ANON_KEY:${SUPABASE_ANON_KEY}
+      - SUPABASE_SERVICE_ROLE_KEY:${SUPABASE_SERVICE_ROLE_KEY}
+      - STORAGE_BUCKET:${STORAGE_BUCKET}

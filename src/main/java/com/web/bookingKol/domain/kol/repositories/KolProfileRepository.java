@@ -16,17 +16,17 @@ public interface KolProfileRepository extends JpaRepository<KolProfile, UUID> {
             SELECT k FROM KolProfile k 
             LEFT JOIN FETCH k.fileUsages fu
             LEFT JOIN FETCH fu.file f
-            WHERE k.user.id = :userId AND fu.targetType = :targetType
+            WHERE k.user.id = :userId
             """)
-    Optional<KolProfile> findByUserId(@Param("userId") UUID userId, @Param("targetType") String targetType);
+    Optional<KolProfile> findByUserId(@Param("userId") UUID userId);
 
     @Query(""" 
             SELECT k FROM KolProfile k 
             LEFT JOIN FETCH k.fileUsages fu
             LEFT JOIN FETCH fu.file f
-            WHERE k.id = :kolId AND fu.targetType = :targetType
+            WHERE k.id = :kolId
             """)
-    Optional<KolProfile> findByKolId(@Param("kolId") UUID kolId, @Param("targetType") String targetType);
+    Optional<KolProfile> findByKolId(@Param("kolId") UUID kolId);
 
     @Query("SELECT k FROM KolProfile k JOIN k.categories c WHERE c.id = :CategoryId")
     List<KolProfile> findByCategoryId(UUID CategoryId);
