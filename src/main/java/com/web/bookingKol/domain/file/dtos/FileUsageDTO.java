@@ -13,6 +13,7 @@ public class FileUsageDTO {
     private String targetType;
     private Boolean isCover;
     private Instant createdAt;
+    private Boolean isActive;
 
     private FileDTO file;
 }

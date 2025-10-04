@@ -40,4 +40,7 @@ public class FileUsage {
     @Column(name = "created_at")
     private Instant createdAt;
 
+    @Column(name = "is_active")
+    private Boolean isActive;
+
 }
