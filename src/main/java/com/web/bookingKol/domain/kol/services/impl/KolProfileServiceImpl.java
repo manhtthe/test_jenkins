@@ -1,6 +1,7 @@
 package com.web.bookingKol.domain.kol.services.impl;
 
 import com.web.bookingKol.common.Enums;
+import com.web.bookingKol.common.UpdateEntityUtil;
 import com.web.bookingKol.common.exception.UserAlreadyExistsException;
 import com.web.bookingKol.common.payload.ApiResponse;
 import com.web.bookingKol.domain.file.FileService;
@@ -28,8 +29,6 @@ import com.web.bookingKol.domain.user.repositories.RoleRepository;
 import com.web.bookingKol.domain.user.repositories.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.BeanWrapper;
-import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
@@ -38,7 +37,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.beans.PropertyDescriptor;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -313,8 +311,8 @@ public class KolProfileServiceImpl implements KolProfileService {
         User kolUser = kolProfile.getUser();
         // Update kol user info and kol profile info
         if (updateKolDTO != null) {
-            BeanUtils.copyProperties(updateKolDTO, kolUser, getNullPropertyNames(updateKolDTO));
-            BeanUtils.copyProperties(updateKolDTO, kolProfile, getNullPropertyNames(updateKolDTO));
+            BeanUtils.copyProperties(updateKolDTO, kolUser, UpdateEntityUtil.getNullPropertyNames(updateKolDTO));
+            BeanUtils.copyProperties(updateKolDTO, kolProfile, UpdateEntityUtil.getNullPropertyNames(updateKolDTO));
         }
         kolProfile.setUpdatedAt(Instant.now());
         userRepository.save(kolUser);
@@ -324,25 +322,6 @@ public class KolProfileServiceImpl implements KolProfileService {
                 .message(List.of("Update kol profile successfully"))
                 .data(kolDetailMapper.toDto(kolProfile))
                 .build();
-    }
-
-    /**
-     * Utility method to get names of properties with null values in the source object.
-     * This is used to ignore null properties during BeanUtils.copyProperties.
-     *
-     * @param source the source object to check for null properties
-     * @return an array of property names that have null values
-     */
-    private static String[] getNullPropertyNames(Object source) {
-        final BeanWrapper src = new BeanWrapperImpl(source);
-        PropertyDescriptor[] pds = src.getPropertyDescriptors();
-        Set<String> emptyNames = new HashSet<>();
-        for (PropertyDescriptor pd : pds) {
-            Object srcValue = src.getPropertyValue(pd.getName());
-            if (srcValue == null) emptyNames.add(pd.getName());
-        }
-        String[] result = new String[emptyNames.size()];
-        return emptyNames.toArray(result);
     }
 
     @Transactional

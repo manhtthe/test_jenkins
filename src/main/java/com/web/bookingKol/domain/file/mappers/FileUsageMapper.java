@@ -14,4 +14,8 @@ public interface FileUsageMapper {
     List<FileUsageDTO> toDtoList(List<FileUsage> fileUsages);
 
     Set<FileUsageDTO> toDtoSet(Set<FileUsage> fileUsages);
+
+    FileUsage toEntity(FileUsageDTO fileUsageDTO);
+
+    Set<FileUsage> toEntitySet(Set<FileUsageDTO> fileUsageDTOS);
 }
