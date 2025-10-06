@@ -1,13 +1,45 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/testdb
-    username: postgres
-    password: 123456
+    url: ${DEV_DATABASE_URL}
+    username: ${DEV_DATABASE_USERNAME}
+    password: ${DEV_DATABASE_PASSWORD}
+    driver-class-name: org.postgresql.Driver
 
-server:
-  port: 8080
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
 
 logging:
   level:
     root: INFO
     org.springframework.web: DEBUG
+
+server:
+  servlet:
+    context-path: /api/v1
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+
+gemini:
+  api:
+    key: ${GEMINI_API_KEY}
