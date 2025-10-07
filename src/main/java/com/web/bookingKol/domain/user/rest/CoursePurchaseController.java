@@ -1,6 +1,8 @@
 package com.web.bookingKol.domain.user.rest;
 
+import com.web.bookingKol.common.PagedResponse;
 import com.web.bookingKol.common.payload.ApiResponse;
+import com.web.bookingKol.domain.user.dtos.PurchasedCourseResponse;
 import com.web.bookingKol.domain.user.services.CoursePurchaseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -22,9 +24,9 @@ public class CoursePurchaseController {
 
     private final CoursePurchaseService coursePurchaseService;
 
-    @PreAuthorize("hasAnyRole('USER','ADMIN','SUPER_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('USER','ADMIN','SUPER_ADMIN')")
     @GetMapping("/history")
-    public ResponseEntity<ApiResponse<?>> getPurchaseHistory(
+    public ResponseEntity<ApiResponse<PagedResponse<PurchasedCourseResponse>>> getPurchaseHistory(
             @AuthenticationPrincipal UserDetails userDetails,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant startDate,
@@ -35,6 +37,7 @@ public class CoursePurchaseController {
                 coursePurchaseService.getPurchaseHistory(userDetails.getUsername(), search, startDate, endDate, pageable)
         );
     }
+
 }
 
 

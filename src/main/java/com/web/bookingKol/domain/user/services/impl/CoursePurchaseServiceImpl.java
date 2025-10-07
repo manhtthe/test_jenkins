@@ -1,6 +1,7 @@
 package com.web.bookingKol.domain.user.services.impl;
 
 
+import com.web.bookingKol.common.PagedResponse;
 import com.web.bookingKol.common.payload.ApiResponse;
 import com.web.bookingKol.domain.user.dtos.PurchasedCourseResponse;
 import com.web.bookingKol.domain.user.models.User;
@@ -16,7 +17,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -26,7 +29,9 @@ public class CoursePurchaseServiceImpl implements CoursePurchaseService {
     private final PurchasedCoursePackageRepository purchasedCoursePackageRepository;
 
     @Override
-    public ApiResponse<?> getPurchaseHistory(String userEmail, String search, Instant startDate, Instant endDate, Pageable pageable) {
+    public ApiResponse<PagedResponse<PurchasedCourseResponse>> getPurchaseHistory(
+            String userEmail, String search, Instant startDate, Instant endDate, Pageable pageable) {
+
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy người dùng"));
 
@@ -60,12 +65,14 @@ public class CoursePurchaseServiceImpl implements CoursePurchaseService {
                 .endDate(p.getEndDate())
                 .build());
 
-        return ApiResponse.builder()
+        return ApiResponse.<PagedResponse<PurchasedCourseResponse>>builder()
                 .status(HttpStatus.OK.value())
                 .message(List.of("Lấy lịch sử mua khóa học thành công"))
-                .data(response)
+                .data(PagedResponse.fromPage(response))
                 .build();
     }
+
+
 }
 
 
