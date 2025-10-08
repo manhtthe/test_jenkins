@@ -21,6 +21,10 @@ import com.web.bookingKol.domain.file.repositories.FileUsageRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -57,23 +61,51 @@ public class CoursePackageServiceImpl implements CoursePackageService {
     }
 
     @Override
-    public ApiResponse<List<CoursePackageDTO>> getAllCourse() {
-        List<CoursePackageDTO> coursePackages = coursePackageMapper.toDtoList(coursePackageRepository.findAll()
-                .stream().filter(coursePackage -> Boolean.TRUE.equals(coursePackage.getIsAvailable())).toList());
-        return ApiResponse.<List<CoursePackageDTO>>builder()
+    public ApiResponse<Page<CoursePackageDTO>> getAllCourse(
+            Integer minPrice,
+            Integer maxPrice,
+            Integer minDiscount,
+            Integer maxDiscount,
+            int page,
+            int size,
+            String sortBy,
+            String sortDir
+    ) {
+        Sort sort = Sort.by(sortBy);
+        sort = sortDir.equalsIgnoreCase("desc") ? sort.descending() : sort.ascending();
+        Pageable pageable = PageRequest.of(page, size, sort);
+        Page<CoursePackageDTO> coursePackageDtos = coursePackageRepository
+                .findAllAvailableForUser(minPrice, maxPrice, minDiscount, maxDiscount, pageable)
+                .map(coursePackageMapper::toDto);
+        return ApiResponse.<Page<CoursePackageDTO>>builder()
                 .status(HttpStatus.OK.value())
-                .message(List.of("Get all course available packages success"))
-                .data(coursePackages)
+                .message(List.of("Get all available course packages success"))
+                .data(coursePackageDtos)
                 .build();
     }
 
     @Override
-    public ApiResponse<List<CoursePackageDTO>> getAllCoursesAdmin() {
-        List<CoursePackageDTO> coursePackages = coursePackageMapper.toDtoList(coursePackageRepository.findAll());
-        return ApiResponse.<List<CoursePackageDTO>>builder()
+    public ApiResponse<Page<CoursePackageDTO>> getAllCoursesAdmin(
+            Boolean isAvailable,
+            Integer minPrice,
+            Integer maxPrice,
+            Integer minDiscount,
+            Integer maxDiscount,
+            int page,
+            int size,
+            String sortBy,
+            String sortDir
+    ) {
+        Sort sort = Sort.by(sortBy);
+        sort = sortDir.equalsIgnoreCase("desc") ? sort.descending() : sort.ascending();
+        Pageable pageable = PageRequest.of(page, size, sort);
+        Page<CoursePackageDTO> coursePackageDtos = coursePackageRepository
+                .findAllFiltered(isAvailable, minPrice, maxPrice, minDiscount, maxDiscount, pageable)
+                .map(coursePackageMapper::toDto);
+        return ApiResponse.<Page<CoursePackageDTO>>builder()
                 .status(HttpStatus.OK.value())
-                .message(List.of("Get all course available packages success"))
-                .data(coursePackages)
+                .message(List.of("Get all course packages success"))
+                .data(coursePackageDtos)
                 .build();
     }
 

@@ -4,6 +4,7 @@ import com.web.bookingKol.domain.course.dtos.CoursePackageDTO;
 import com.web.bookingKol.domain.course.dtos.UpdateCoursePackageDTO;
 import com.web.bookingKol.domain.course.services.CoursePackageService;
 import com.web.bookingKol.domain.user.models.UserDetailsImpl;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -20,8 +21,17 @@ public class AdminCourseRestController {
     private CoursePackageService coursePackageService;
 
     @GetMapping("/all")
-    public ResponseEntity<?> getAllCoursesAdmin() {
-        return ResponseEntity.ok(coursePackageService.getAllCoursesAdmin());
+    public ResponseEntity<?> getAllCoursesAdmin(@RequestParam(required = false) Boolean isAvailable,
+                                                @RequestParam(required = false) Integer minPrice,
+                                                @RequestParam(required = false) Integer maxPrice,
+                                                @RequestParam(required = false) Integer minDiscount,
+                                                @RequestParam(required = false) Integer maxDiscount,
+                                                @RequestParam(defaultValue = "0") int page,
+                                                @RequestParam(defaultValue = "10") int size,
+                                                @RequestParam(defaultValue = "price") String sortBy,
+                                                @RequestParam(defaultValue = "asc") String sortDir) {
+        return ResponseEntity.ok(coursePackageService.getAllCoursesAdmin(isAvailable, minPrice, maxPrice, minDiscount, maxDiscount,
+                page, size, sortBy, sortDir));
     }
 
     @GetMapping("/detail/{courseId}")
@@ -32,7 +42,7 @@ public class AdminCourseRestController {
     @PostMapping("/create")
     public ResponseEntity<?> createCourseAdmin(@AuthenticationPrincipal UserDetailsImpl userDetails,
                                                @RequestPart(value = "courseMedias", required = false) List<MultipartFile> courseMedias,
-                                               @RequestPart CoursePackageDTO coursePackageDTO) {
+                                               @RequestPart @Valid CoursePackageDTO coursePackageDTO) {
         UUID adminId = userDetails.getId();
         return ResponseEntity.ok(coursePackageService.createCoursePackage(adminId, coursePackageDTO, courseMedias));
     }
