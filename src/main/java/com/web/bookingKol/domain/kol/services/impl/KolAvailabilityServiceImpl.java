@@ -27,8 +27,8 @@ public class KolAvailabilityServiceImpl implements KolAvailabilityService {
     private final KolAvailabilityRepository kolAvailabilityRepository;
 
     @Override
-    public ApiResponse<List<KolAvailabilityDTO>> getKolSchedule(UUID userId, OffsetDateTime start, OffsetDateTime end) {
-        var list = kolAvailabilityRepository.findByUserIdAndDateRange(userId, start, end)
+    public ApiResponse<List<KolAvailabilityDTO>> getKolSchedule(UUID kolId, OffsetDateTime start, OffsetDateTime end) {
+        var list = kolAvailabilityRepository.findByKolIdAndDateRange(kolId, start, end)
                 .stream()
                 .map(KolAvailabilityDTO::new)
                 .toList();

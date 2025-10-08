@@ -1,6 +1,5 @@
 package com.web.bookingKol.domain.kol.models;
 
-import com.web.bookingKol.domain.user.models.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -23,8 +22,8 @@ public class KolAvailability {
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @JoinColumn(name = "kol_id", nullable = false)
+    private KolProfile kol;
 
     @NotNull
     @Column(name = "start_at", nullable = false)

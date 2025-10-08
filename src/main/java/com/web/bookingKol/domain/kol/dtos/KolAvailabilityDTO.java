@@ -13,7 +13,7 @@ public class KolAvailabilityDTO {
     private String status;
     private String note;
 
-    private UUID userId;
+    private UUID kolId;
     private String fullName;
     private String email;
     private String phone;
@@ -28,9 +28,9 @@ public class KolAvailabilityDTO {
         this.status = availability.getStatus();
         this.note = availability.getNote();
 
-        User user = availability.getUser();
+        User user = availability.getKol().getUser();
         if (user != null) {
-            this.userId = user.getId();
+            this.kolId = availability.getKol().getId();
             this.fullName = user.getFullName();
             this.email = user.getEmail();
             this.phone = user.getPhone();
@@ -53,8 +53,8 @@ public class KolAvailabilityDTO {
     public String getNote() { return note; }
     public void setNote(String note) { this.note = note; }
 
-    public UUID getUserId() { return userId; }
-    public void setUserId(UUID userId) { this.userId = userId; }
+    public UUID getKolId() { return kolId; }
+    public void setKolId(UUID userId) { this.kolId = userId; }
 
     public String getFullName() { return fullName; }
     public void setFullName(String fullName) { this.fullName = fullName; }
