@@ -35,28 +35,21 @@ public interface KolProfileRepository extends JpaRepository<KolProfile, UUID> {
     List<KolProfile> findByCategoryId(UUID CategoryId);
 
     @Query("""
-            SELECT k FROM KolProfile k
-            LEFT JOIN FETCH k.user u
-            WHERE k.isAvailable = true AND u.status = :userStatus
-            """)
-    List<KolProfile> findAllKolAvailable(@Param("userStatus") String status);
-
-    @Query("""
                 SELECT k FROM KolProfile k
                 LEFT JOIN FETCH k.user u
-                JOIN k.categories c
-                WHERE (:minRating IS NULL OR k.overallRating >= :minRating)
+                LEFT JOIN k.categories c
+                WHERE k.isAvailable = true
+                  AND u.status = :userStatus
+                  AND (:minRating IS NULL OR k.overallRating >= :minRating)
                   AND (:categoryId IS NULL OR c.id = :categoryId)
                   AND (:minPrice IS NULL OR k.minBookingPrice >= :minPrice)
-                  AND (:city IS NULL OR :city = '' OR k.city = :city)
-                  AND k.isAvailable = true AND u.status = :userStatus
             """)
-    List<KolProfile> filterKols(
+    Page<KolProfile> findAllKolAvailableWithFilter(
+            @Param("userStatus") String userStatus,
             @Param("minRating") Double minRating,
             @Param("categoryId") UUID categoryId,
-            @Param("minPrice") Double minPrice,
-            @Param("city") String city,
-            @Param("userStatus") String userStatus
+            @Param("minPrice") BigDecimal minPrice,
+            Pageable pageable
     );
 
     boolean existsById(UUID id);

@@ -41,7 +41,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.beans.PropertyDescriptor;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.*;
@@ -122,26 +121,21 @@ public class KolProfileServiceImpl implements KolProfileService {
                 .build();
     }
 
-
-    /**
-     * Retrieve all available KOL profiles that have ACTIVE status.
-     * Each KOL profile will contain cover files that are active and marked as cover.
-     *
-     * @return ApiResponse containing the list of available KOL profiles
-     */
     @Override
-    public ApiResponse<List<KolProfileDTO>> getAllKolAvailable() {
-        List<KolProfileDTO> KolProfileDTOS = kolProfileRepository
-                .findAllKolAvailable(Enums.UserStatus.ACTIVE.name())
-                .stream().map(kol -> {
+    public ApiResponse<Page<KolProfileDTO>> getAllKolAvailable(
+            Double minRating, UUID categoryId, BigDecimal minPrice, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "overallRating"));
+        Page<KolProfileDTO> kolProfilePage = kolProfileRepository
+                .findAllKolAvailableWithFilter(Enums.UserStatus.ACTIVE.name(), minRating, categoryId, minPrice, pageable)
+                .map(kol -> {
                     KolProfileDTO dto = kolProfileMapper.toDto(kol);
                     dto.setFileUsageDtos(getActiveCoverFiles(dto.getFileUsageDtos()));
                     return dto;
-                }).toList();
-        return ApiResponse.<List<KolProfileDTO>>builder()
+                });
+        return ApiResponse.<Page<KolProfileDTO>>builder()
                 .status(HttpStatus.OK.value())
-                .message(List.of("Get all kol profiles success"))
-                .data(KolProfileDTOS)
+                .message(List.of("Get available KOL profiles success"))
+                .data(kolProfilePage)
                 .build();
     }
 
@@ -164,42 +158,6 @@ public class KolProfileServiceImpl implements KolProfileService {
                 .status(HttpStatus.OK.value())
                 .message(List.of("Get all kol by Category success!"))
                 .data(KolProfileDTOS)
-                .build();
-    }
-
-    /**
-     * Retrieve KOL profiles based on multiple filters such as rating, category, price, and city.
-     * Only active KOLs will be returned.
-     * Each KOL profile will contain cover files that are active and marked as cover.
-     *
-     * @param filterKolDTO the filter criteria for searching KOLs
-     * @return ApiResponse containing the list of KOL profiles that match the filters,
-     * or NOT_FOUND status if none are found
-     */
-    @Override
-    public ApiResponse<List<KolProfileDTO>> getAllKolWithFilter(FilterKolDTO filterKolDTO) {
-        Double minRating = filterKolDTO.getMinRating() != null ? filterKolDTO.getMinRating() : null;
-        UUID categoryId = filterKolDTO.getCategoryId() != null ? filterKolDTO.getCategoryId() : null;
-        Double minPrice = filterKolDTO.getMinBookingPrice() != null ? filterKolDTO.getMinBookingPrice() : null;
-        String city = filterKolDTO.getCity() != null ? filterKolDTO.getCity().trim() : null;
-        List<KolProfile> kolProfiles = kolProfileRepository
-                .filterKols(minRating, categoryId, minPrice, city, Enums.UserStatus.ACTIVE.name());
-        if (kolProfiles.isEmpty()) {
-            return ApiResponse.<List<KolProfileDTO>>builder()
-                    .status(HttpStatus.NOT_FOUND.value())
-                    .message(List.of("No kol profiles found with the given filters"))
-                    .data(null)
-                    .build();
-        }
-        List<KolProfileDTO> kolProfileDTOS = kolProfiles.stream().map(kol -> {
-            KolProfileDTO dto = kolProfileMapper.toDto(kol);
-            dto.setFileUsageDtos(getActiveCoverFiles(dto.getFileUsageDtos()));
-            return dto;
-        }).toList();
-        return ApiResponse.<List<KolProfileDTO>>builder()
-                .status(HttpStatus.OK.value())
-                .message(List.of("Get all kol profiles success"))
-                .data(kolProfileDTOS)
                 .build();
     }
 

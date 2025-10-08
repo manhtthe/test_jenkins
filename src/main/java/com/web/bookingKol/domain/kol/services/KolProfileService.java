@@ -24,11 +24,14 @@ public interface KolProfileService {
                                                int page,
                                                int size);
 
-    ApiResponse<List<KolProfileDTO>> getAllKolAvailable();
+    ApiResponse<Page<KolProfileDTO>> getAllKolAvailable(Double minRating,
+                                                        UUID categoryId,
+                                                        BigDecimal minPrice,
+                                                        int page,
+                                                        int size
+    );
 
     ApiResponse<List<KolProfileDTO>> getAllKolProfilesByCategoryId(UUID categoryId);
-
-    ApiResponse<List<KolProfileDTO>> getAllKolWithFilter(FilterKolDTO filterKolDTO);
 
     //KOL personal information management
     ApiResponse<KolCreatedDTO> createNewKolAccount(UUID AdminId, NewKolDTO newKolDTO, MultipartFile fileAvatar);
