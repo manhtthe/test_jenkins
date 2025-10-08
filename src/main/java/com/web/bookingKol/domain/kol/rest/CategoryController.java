@@ -6,14 +6,8 @@ import com.web.bookingKol.domain.kol.services.impl.CategoryServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -24,29 +18,36 @@ import java.util.UUID;
 public class CategoryController {
     private final CategoryServiceImpl categoryService;
 
+    @PreAuthorize("hasAnyAuthority('ADMIN','SUPER_ADMIN')")
     @PostMapping
     public ResponseEntity<ApiResponse<Category>> createCategory(@RequestBody Category category) {
         return new ResponseEntity<>(categoryService.createCategory(category), HttpStatus.CREATED);
     }
 
+    @PreAuthorize("hasAnyAuthority('ADMIN','SUPER_ADMIN')")
     @GetMapping
-    public ResponseEntity<List<Category>>  getCategories() {
-        return ResponseEntity.ok(categoryService.getAllCategories().getData());
+    public ResponseEntity<ApiResponse<List<Category>>> getCategories() {
+        return ResponseEntity.ok(categoryService.getAllCategories());
     }
 
+
+
+    @PreAuthorize("hasAnyAuthority('ADMIN','SUPER_ADMIN')")
     @GetMapping("/{id}")
     public ResponseEntity<Category>  getCategories(@PathVariable("id") UUID id) {
         return ResponseEntity.ok(categoryService.findByCategoryId(id).getData());
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Category>  updateCategories(@PathVariable("id") UUID id, Category category) {
+    @PreAuthorize("hasAnyAuthority('ADMIN','SUPER_ADMIN')")
+    @PatchMapping("/{id}")
+    public ResponseEntity<Category> updateCategory(@PathVariable("id") UUID id, @RequestBody Category category) {
         category.setId(id);
         return ResponseEntity.ok(categoryService.updateCategory(category).getData());
     }
 
+    @PreAuthorize("hasAnyAuthority('ADMIN','SUPER_ADMIN')")
     @DeleteMapping("/{id}")
-    public ResponseEntity<?>  deleteCategories(@PathVariable("id") UUID id) {
+    public ResponseEntity<?> deleteCategory(@PathVariable("id") UUID id) {
         return ResponseEntity.ok(categoryService.deleteCategory(id));
     }
 }

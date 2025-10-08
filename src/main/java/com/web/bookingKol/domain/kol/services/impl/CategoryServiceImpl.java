@@ -24,7 +24,7 @@ public class CategoryServiceImpl implements CategoryService {
         List<Category> categories = categoryRepository.findAll();
         return ApiResponse.<List<Category>>builder()
                 .status(200)
-                .message(List.of("Get all categories success"))
+                .message(List.of("Lấy tất cả categories thành công"))
                 .data(categories)
                 .build();
     }
@@ -32,10 +32,10 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public ApiResponse<Category> findByCategoryId(UUID categoryId) {
         Category category = categoryRepository.findByCategoryId(categoryId)
-                .orElseThrow(() -> new RuntimeException("Category not found with id: " + categoryId));
+                .orElseThrow(() -> new RuntimeException("không tìm thấy category id: " + categoryId));
         return ApiResponse.<Category>builder()
                 .status(200)
-                .message(List.of("Get category success"))
+                .message(List.of("Lấy category thành công"))
                 .data(category)
                 .build();
     }
@@ -43,21 +43,23 @@ public class CategoryServiceImpl implements CategoryService {
     @Transactional
     public ApiResponse<Category> updateCategory(Category category) {
         if (category.getId() == null) {
-            throw new IllegalArgumentException("Id is required for update");
-        }
-        Category existingCategory = categoryRepository.findById(category.getId())
-                .orElseThrow(() -> new RuntimeException("Category not found with id: " + category.getId()));
-        if (category.getKey() != null && !category.getKey().isBlank()) {
-            existingCategory.setKey(category.getKey());
-        }
-        if (category.getName() != null && !category.getName().isBlank()) {
-            existingCategory.setName(category.getName());
+            throw new IllegalArgumentException("Id bắt buộc");
         }
 
-        Category saved = categoryRepository.save(existingCategory);
+        Category existing = categoryRepository.findById(category.getId())
+                .orElseThrow(() -> new RuntimeException("không tìm thấy: " + category.getId()));
+
+        if (category.getKey() != null && !category.getKey().isBlank()) {
+            existing.setKey(category.getKey());
+        }
+        if (category.getName() != null && !category.getName().isBlank()) {
+            existing.setName(category.getName());
+        }
+
+        Category saved = categoryRepository.save(existing);
         return ApiResponse.<Category>builder()
                 .status(200)
-                .message(java.util.List.of("Update category success"))
+                .message(List.of("cập nhật category thành công"))
                 .data(saved)
                 .build();
     }
@@ -66,18 +68,22 @@ public class CategoryServiceImpl implements CategoryService {
     public ApiResponse<Category> createCategory(Category category) {
         return ApiResponse.<Category>builder()
                 .status(200)
-                .message(List.of("Update category success"))
+                .message(List.of("tạo category thành công"))
                 .data(categoryRepository.save(category))
                 .build();
     }
 
     @Transactional
     public String deleteCategory(UUID categoryId) {
-        if (!categoryRepository.existsById(categoryId)) {
+        Category category = categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy category id: " + categoryId));
+        boolean newStatus = !category.isDeleted();
+        category.setDeleted(newStatus);
+        categoryRepository.save(category);
 
-            throw new RuntimeException("Category not found with id: " + categoryId);
-        }
-        categoryRepository.deleteById(categoryId);
-        return "Delete category success";
+        return newStatus
+                ? "Đã chuyển category sang trạng thái đã xóa "
+                : "Đã khôi phục category";
     }
+
 }
