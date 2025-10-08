@@ -19,11 +19,6 @@ public class KolProfileRestController {
         return ResponseEntity.ok(kolProfileService.getKolProfileByUserId(userId));
     }
 
-    @GetMapping("/all")
-    public ResponseEntity<?> getAllKolProfile() {
-        return ResponseEntity.ok(kolProfileService.getAllKol());
-    }
-
     @GetMapping("/kol-id/{kolId}")
     public ResponseEntity<?> getKolProfileByKolId(@PathVariable UUID kolId) {
         return ResponseEntity.ok(kolProfileService.getKolProfileByKolId(kolId));
