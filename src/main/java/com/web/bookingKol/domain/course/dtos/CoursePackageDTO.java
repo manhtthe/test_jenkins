@@ -1,4 +1,4 @@
-package com.web.bookingKol.domain.course;
+package com.web.bookingKol.domain.course.dtos;
 
 import com.web.bookingKol.domain.file.dtos.FileUsageDTO;
 import lombok.Data;
