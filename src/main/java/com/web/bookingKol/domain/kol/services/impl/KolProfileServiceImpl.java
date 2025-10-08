@@ -30,6 +30,10 @@ import com.web.bookingKol.domain.user.repositories.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -37,6 +41,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.beans.PropertyDescriptor;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -94,26 +100,28 @@ public class KolProfileServiceImpl implements KolProfileService {
                 .build();
     }
 
-    /**
-     * Retrieve all KOL profiles from the repository.
-     * Each KOL profile will contain cover files that are active and marked as cover.
-     *
-     * @return ApiResponse containing the list of all KOL profiles
-     */
     @Override
-    public ApiResponse<List<KolProfileDTO>> getAllKol() {
-        List<KolProfileDTO> KolProfileDTOS = kolProfileRepository.findAll()
-                .stream().map(kol -> {
+    public ApiResponse<Page<KolProfileDTO>> getAllKol(
+            BigDecimal minBookingPrice,
+            Boolean isAvailable,
+            Double minRating,
+            int page,
+            int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("overallRating").descending());
+        Page<KolProfileDTO> kolDtos = kolProfileRepository.findAllFiltered(minBookingPrice, isAvailable, minRating, pageable)
+                .map(kol -> {
                     KolProfileDTO dto = kolProfileMapper.toDto(kol);
                     dto.setFileUsageDtos(getActiveCoverFiles(dto.getFileUsageDtos()));
                     return dto;
-                }).toList();
-        return ApiResponse.<List<KolProfileDTO>>builder()
+                });
+        return ApiResponse.<Page<KolProfileDTO>>builder()
                 .status(HttpStatus.OK.value())
                 .message(List.of("Get all kol profiles success"))
-                .data(KolProfileDTOS)
+                .data(kolDtos)
                 .build();
     }
+
 
     /**
      * Retrieve all available KOL profiles that have ACTIVE status.

@@ -12,6 +12,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -20,6 +21,15 @@ import java.util.UUID;
 public class AdminKolRestController {
     @Autowired
     private KolProfileService kolProfileService;
+
+    @GetMapping("/all")
+    public ResponseEntity<?> getAllKolProfile(@RequestParam(required = false) BigDecimal minBookingPrice,
+                                              @RequestParam(required = false) Boolean isAvailable,
+                                              @RequestParam(required = false) Double minRating,
+                                              @RequestParam(defaultValue = "0") int page,
+                                              @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(kolProfileService.getAllKol(minBookingPrice, isAvailable, minRating, page, size));
+    }
 
     @PostMapping("/create-new-kol")
     public ResponseEntity<?> createNewKolAccount(@AuthenticationPrincipal UserDetailsImpl userDetails,
