@@ -23,13 +23,13 @@ public class KolAvailabilityController {
     private final KolAvailabilityService availabilityService;
 
     @PreAuthorize("hasAuthority('KOL')")
-    @GetMapping("/{userId}/schedule")
+    @GetMapping("/{kolId}/schedule")
     public ResponseEntity<ApiResponse<List<KolAvailabilityDTO>>> getKolSchedule(
-            @PathVariable UUID userId,
+            @PathVariable UUID kolId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime start,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime end
     ) {
-        return ResponseEntity.ok(availabilityService.getKolSchedule(userId, start, end));
+        return ResponseEntity.ok(availabilityService.getKolSchedule(kolId, start, end));
     }
 
 }
