@@ -40,9 +40,10 @@ public class CategoryController {
 
     @PreAuthorize("hasAnyAuthority('ADMIN','SUPER_ADMIN')")
     @PatchMapping("/{id}")
-    public ResponseEntity<Category> updateCategory(@PathVariable("id") UUID id, @RequestBody Category category) {
-        category.setId(id);
-        return ResponseEntity.ok(categoryService.updateCategory(category).getData());
+    public ResponseEntity<ApiResponse<Category>> updateCategory(
+            @PathVariable("id") UUID id,
+            @RequestBody Category category) {
+        return ResponseEntity.ok(categoryService.updateCategory(id, category));
     }
 
     @PreAuthorize("hasAnyAuthority('ADMIN','SUPER_ADMIN')")

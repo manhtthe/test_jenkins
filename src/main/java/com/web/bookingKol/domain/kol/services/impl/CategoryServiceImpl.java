@@ -41,49 +41,56 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Transactional
-    public ApiResponse<Category> updateCategory(Category category) {
-        if (category.getId() == null) {
-            throw new IllegalArgumentException("Id bắt buộc");
-        }
+    public ApiResponse<Category> updateCategory(UUID id, Category updateRequest) {
+        Category existing = categoryRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy category id: " + id));
 
-        Category existing = categoryRepository.findById(category.getId())
-                .orElseThrow(() -> new RuntimeException("không tìm thấy: " + category.getId()));
-
-        if (category.getKey() != null && !category.getKey().isBlank()) {
-            existing.setKey(category.getKey());
+        if (updateRequest.getName() != null && !updateRequest.getName().isBlank()) {
+            existing.setName(updateRequest.getName());
         }
-        if (category.getName() != null && !category.getName().isBlank()) {
-            existing.setName(category.getName());
+        if (updateRequest.getKey() != null && !updateRequest.getKey().isBlank()) {
+            existing.setKey(updateRequest.getKey());
         }
 
         Category saved = categoryRepository.save(existing);
         return ApiResponse.<Category>builder()
                 .status(200)
-                .message(List.of("cập nhật category thành công"))
+                .message(List.of("Cập nhật category thành công"))
                 .data(saved)
                 .build();
     }
 
     @Transactional
     public ApiResponse<Category> createCategory(Category category) {
+        category.setId(null);
+        category.setDeleted(false);
+
+        Category saved = categoryRepository.save(category);
         return ApiResponse.<Category>builder()
-                .status(200)
-                .message(List.of("tạo category thành công"))
-                .data(categoryRepository.save(category))
+                .status(201)
+                .message(List.of("Tạo category thành công"))
+                .data(saved)
                 .build();
     }
 
     @Transactional
-    public String deleteCategory(UUID categoryId) {
+    public ApiResponse<String> deleteCategory(UUID categoryId) {
         Category category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy category id: " + categoryId));
+
         boolean newStatus = !category.isDeleted();
         category.setDeleted(newStatus);
         categoryRepository.save(category);
 
-        return newStatus
-                ? "Đã chuyển category sang trạng thái đã xóa "
+        String message = newStatus
+                ? "Đã chuyển category sang trạng thái đã xóa"
                 : "Đã khôi phục category";
+
+        return ApiResponse.<String>builder()
+                .status(200)
+                .message(List.of(message))
+                .data(message)
+                .build();
     }
 
 }
