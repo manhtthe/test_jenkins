@@ -73,7 +73,7 @@ public class SecurityConfig {
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/actuator/**").hasAuthority(Enums.Roles.SUPER_ADMIN.name())
                         .requestMatchers("/kol-profiles/**", "/courses/**").permitAll()
-                        .requestMatchers("/register/**").permitAll()
+                        .requestMatchers("/register/**", "/payment/**").permitAll()
                         .requestMatchers("/password/**").permitAll()
                         .requestMatchers("/admin/**").hasAuthority(Enums.Roles.ADMIN.name())
                         .requestMatchers("/kol/**").hasAuthority(Enums.Roles.KOL.name())

@@ -1,5 +1,6 @@
 package com.web.bookingKol.domain.booking.models;
 
+import com.web.bookingKol.domain.file.models.FileUsage;
 import com.web.bookingKol.domain.kol.models.KolProfile;
 import com.web.bookingKol.domain.kol.models.KolPromotion;
 import com.web.bookingKol.domain.user.models.User;
@@ -11,7 +12,6 @@ import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 
 import java.time.Instant;
-import java.time.LocalDate;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -25,7 +25,6 @@ public class BookingRequest {
     @Column(name = "id", nullable = false)
     private UUID id;
 
-    @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "campaign_id", nullable = false)
     private Campaign campaign;
@@ -37,9 +36,6 @@ public class BookingRequest {
 
     @Column(name = "description", length = Integer.MAX_VALUE)
     private String description;
-
-    @Column(name = "attached_file", length = Integer.MAX_VALUE)
-    private String attachedFile;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "kol_promo_id")
@@ -58,7 +54,7 @@ public class BookingRequest {
     private String dayOfWeek;
 
     @Column(name = "repeat_until")
-    private LocalDate repeatUntil;
+    private Instant repeatUntil;
 
     @ColumnDefault("now()")
     @Column(name = "created_at")
@@ -78,5 +74,21 @@ public class BookingRequest {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    @Column(name = "booking_type", length = 50)
+    private String bookingType;
+
+    @Column(name = "start_at")
+    private Instant startAt;
+
+    @Column(name = "end_at")
+    private Instant endAt;
+
+    @OneToMany
+    @JoinColumn(name = "target_id", referencedColumnName = "id", insertable = false, updatable = false)
+    private Set<FileUsage> attachedFiles = new LinkedHashSet<>();
+
+    @Column(name = "location", length = Integer.MAX_VALUE)
+    private String location;
 
 }

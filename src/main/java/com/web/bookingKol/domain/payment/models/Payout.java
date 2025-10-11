@@ -1,7 +1,8 @@
-package com.web.bookingKol.temp_models;
+package com.web.bookingKol.domain.payment.models;
 
 import com.web.bookingKol.domain.booking.models.Contract;
-import com.web.bookingKol.domain.user.models.User;
+import com.web.bookingKol.domain.kol.models.KolPayoutAccount;
+import com.web.bookingKol.domain.kol.models.KolProfile;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -11,15 +12,13 @@ import org.hibernate.annotations.ColumnDefault;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.LinkedHashSet;
-import java.util.Set;
 import java.util.UUID;
 
 @Getter
 @Setter
 @Entity
-@Table(name = "payment_intents")
-public class PaymentIntent {
+@Table(name = "payouts")
+public class Payout {
     @Id
     @Column(name = "id", nullable = false)
     private UUID id;
@@ -28,6 +27,16 @@ public class PaymentIntent {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "contract_id", nullable = false)
     private Contract contract;
+
+    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "kol_id", nullable = false)
+    private KolProfile kol;
+
+    @NotNull
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "payout_account_id", nullable = false)
+    private KolPayoutAccount payoutAccount;
 
     @NotNull
     @Column(name = "amount", nullable = false, precision = 18, scale = 2)
@@ -42,20 +51,15 @@ public class PaymentIntent {
     @Column(name = "status", length = 50)
     private String status;
 
-    @Size(max = 50)
-    @Column(name = "provider", length = 50)
-    private String provider;
-
     @Size(max = 255)
-    @Column(name = "provider_intent_id")
-    private String providerIntentId;
+    @Column(name = "provider_payout_id")
+    private String providerPayoutId;
 
-    @Size(max = 255)
-    @Column(name = "client_secret")
-    private String clientSecret;
+    @Column(name = "processed_at")
+    private Instant processedAt;
 
-    @Column(name = "commission_amount", precision = 18, scale = 2)
-    private BigDecimal commissionAmount;
+    @Column(name = "failure_reason", length = Integer.MAX_VALUE)
+    private String failureReason;
 
     @ColumnDefault("now()")
     @Column(name = "created_at")
@@ -64,13 +68,5 @@ public class PaymentIntent {
     @ColumnDefault("now()")
     @Column(name = "updated_at")
     private Instant updatedAt;
-
-    @OneToMany(mappedBy = "paymentIntent")
-    private Set<Payment> payments = new LinkedHashSet<>();
-
-    @NotNull
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
 
 }
