@@ -1,9 +1,10 @@
 package com.web.bookingKol.domain.user.rest;
 
+
 import com.web.bookingKol.common.PagedResponse;
 import com.web.bookingKol.common.payload.ApiResponse;
-import com.web.bookingKol.domain.user.dtos.PurchasedCourseResponse;
-import com.web.bookingKol.domain.user.services.CoursePurchaseService;
+import com.web.bookingKol.domain.user.dtos.BookedPackageResponse;
+import com.web.bookingKol.domain.user.services.BookingUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -15,29 +16,34 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
-import java.time.LocalDate;
 
 @RestController
-@RequestMapping("/courses")
+@RequestMapping("/user/bookings")
 @RequiredArgsConstructor
-public class CoursePurchaseController {
+public class BookingUserController {
 
-    private final CoursePurchaseService coursePurchaseService;
+    private final BookingUserService bookingUserService;
 
-    @PreAuthorize("hasAnyAuthority('USER','ADMIN','SUPER_ADMIN')")
-    @GetMapping("/history")
-    public ResponseEntity<ApiResponse<PagedResponse<PurchasedCourseResponse>>> getPurchaseHistory(
+    @PreAuthorize("hasAuthority('USER')")
+    @GetMapping
+    public ResponseEntity<ApiResponse<PagedResponse<BookedPackageResponse>>> getUserBookings(
             @AuthenticationPrincipal UserDetails userDetails,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant endDate,
-            @PageableDefault(size = 10, sort = "startDate") Pageable pageable
+            @RequestParam(required = false) String packageType,
+            @PageableDefault(size = 10, sort = "createdAt") Pageable pageable
     ) {
         return ResponseEntity.ok(
-                coursePurchaseService.getPurchaseHistory(userDetails.getUsername(), search, startDate, endDate, pageable)
+                bookingUserService.getUserBookings(
+                        userDetails.getUsername(),
+                        search,
+                        startDate,
+                        endDate,
+                        packageType,
+                        pageable
+                )
         );
     }
-
 }
-
 

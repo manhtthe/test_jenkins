@@ -16,6 +16,7 @@ import java.util.UUID;
 @Table(name = "categories")
 public class Category {
     @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id", nullable = false)
     private UUID id;
 
@@ -29,7 +30,9 @@ public class Category {
     @Column(name = "key", nullable = false, length = 120)
     private String key;
 
-    @ManyToMany
-    private Set<KolProfile> kolProfiles = new LinkedHashSet<>();
+    @Column(name = "is_deleted")
+    private boolean deleted = false;
+
+
 
 }
