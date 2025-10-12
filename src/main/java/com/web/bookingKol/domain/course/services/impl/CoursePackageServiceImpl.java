@@ -124,7 +124,8 @@ public class CoursePackageServiceImpl implements CoursePackageService {
     @Override
     public ApiResponse<CoursePackageDTO> createCoursePackage(UUID adminId, CoursePackageDTO coursePackageDTO, List<MultipartFile> courseMedias) {
         CoursePackage cp = new CoursePackage();
-        cp.setId(UUID.randomUUID());
+        UUID courseId = UUID.randomUUID();
+        cp.setId(courseId);
         cp.setName(coursePackageDTO.getName());
         cp.setPrice(coursePackageDTO.getPrice());
         cp.setDiscount(coursePackageDTO.getDiscount());
@@ -134,7 +135,7 @@ public class CoursePackageServiceImpl implements CoursePackageService {
         if (courseMedias != null && !courseMedias.isEmpty()) {
             courseMedias.forEach(image -> {
                 FileDTO fileDTO = fileService.uploadFilePoint(adminId, image);
-                FileUsageDTO fileUsageDTO = fileService.createFileUsage(fileMapper.toEntity(fileDTO), adminId, Enums.TargetType.COURSE_PACKAGE.name(), false);
+                FileUsageDTO fileUsageDTO = fileService.createFileUsage(fileMapper.toEntity(fileDTO), courseId, Enums.TargetType.COURSE_PACKAGE.name(), false);
                 imageFiles.add(fileUsageMapper.toEntity(fileUsageDTO));
             });
             cp.setFileUsages(imageFiles);
