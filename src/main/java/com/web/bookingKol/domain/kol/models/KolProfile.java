@@ -1,5 +1,6 @@
 package com.web.bookingKol.domain.kol.models;
 
+import com.web.bookingKol.common.Enums;
 import com.web.bookingKol.domain.file.models.FileUsage;
 import com.web.bookingKol.domain.user.models.User;
 import com.web.bookingKol.domain.booking.models.BookingRequest;
@@ -61,6 +62,10 @@ public class KolProfile {
     @ColumnDefault("true")
     @Column(name = "is_available")
     private Boolean isAvailable;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role", nullable = false)
+    private Enums.Roles role = Enums.Roles.KOL;
 
     @ColumnDefault("now()")
     @Column(name = "created_at")
