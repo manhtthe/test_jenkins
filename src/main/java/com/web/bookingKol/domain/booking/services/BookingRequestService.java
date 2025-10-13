@@ -3,7 +3,6 @@ package com.web.bookingKol.domain.booking.services;
 import com.web.bookingKol.common.payload.ApiResponse;
 import com.web.bookingKol.domain.booking.dtos.BookingSingleReqDTO;
 import com.web.bookingKol.domain.booking.dtos.BookingSingleResDTO;
-import com.web.bookingKol.domain.booking.models.BookingRequest;
 import com.web.bookingKol.domain.payment.dtos.PaymentReqDTO;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,5 +24,5 @@ public interface BookingRequestService {
                                                               int page,
                                                               int size);
 
-    void acceptBookingRequest(BookingRequest bookingRequest);
+    ApiResponse<BookingSingleResDTO> getDetailBooking(UUID bookingRequestId);
 }

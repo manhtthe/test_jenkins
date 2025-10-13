@@ -3,10 +3,7 @@ package com.web.bookingKol.domain.admin;
 import com.web.bookingKol.domain.booking.services.BookingRequestService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.UUID;
@@ -28,5 +25,10 @@ public class AdminBookingRestController {
                                                        @RequestParam(defaultValue = "20") int size) {
         return ResponseEntity.ok(bookingRequestService.getAllRequestAdmin(
                 kolId, status, startAt, endAt, createdAtFrom, createdAtTo, page, size));
+    }
+
+    @GetMapping("/detail/{requestId}")
+    public ResponseEntity<?> getDetailBookingRequestAdmin(@PathVariable UUID requestId) {
+        return ResponseEntity.ok(bookingRequestService.getDetailBooking(requestId));
     }
 }
