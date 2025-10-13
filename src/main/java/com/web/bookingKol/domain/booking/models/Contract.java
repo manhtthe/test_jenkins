@@ -23,6 +23,7 @@ import java.util.UUID;
 @Table(name = "contracts")
 public class Contract {
     @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", nullable = false)
     private UUID id;
 

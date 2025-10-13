@@ -2,8 +2,13 @@ package com.web.bookingKol.domain.user.rest;
 
 import com.web.bookingKol.common.PagedResponse;
 import com.web.bookingKol.common.payload.ApiResponse;
+import com.web.bookingKol.domain.user.dtos.AdminBookingRequestResponse;
+import com.web.bookingKol.domain.user.dtos.AdminCreateBookingRequestDTO;
 import com.web.bookingKol.domain.user.dtos.BookedPackageResponse;
 import com.web.bookingKol.domain.user.dtos.UpdateBookingStatusRequest;
+import com.web.bookingKol.domain.user.services.AdminBookingRequestService;
+
+import com.web.bookingKol.domain.user.services.AdminBookingRequestViewService;
 import com.web.bookingKol.domain.user.services.BookingAdminService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -11,6 +16,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
@@ -22,6 +28,8 @@ import java.util.UUID;
 public class BookingAdminController {
 
     private final BookingAdminService bookingAdminService;
+    private final AdminBookingRequestService bookingRequestService;
+
 
     @PreAuthorize("hasAnyAuthority('ADMIN','SUPER_ADMIN')")
     @GetMapping
@@ -43,5 +51,36 @@ public class BookingAdminController {
     ) {
         return ResponseEntity.ok(bookingAdminService.updateBookingStatus(id, request));
     }
+
+    @PreAuthorize("hasAnyAuthority('ADMIN','SUPER_ADMIN')")
+    @PostMapping("/create")
+    public ResponseEntity<ApiResponse<?>> createBookingRequest(
+            @RequestBody AdminCreateBookingRequestDTO dto) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        return ResponseEntity.ok(bookingRequestService.createBookingRequest(dto, email));
+    }
+
+
+    @PreAuthorize("hasAnyAuthority('ADMIN','SUPER_ADMIN')")
+    @GetMapping("/requests")
+    public ResponseEntity<ApiResponse<PagedResponse<AdminBookingRequestResponse>>> getAllBookingRequests(
+            @PageableDefault(size = 10, sort = "createdAt") Pageable pageable
+    ) {
+        return ResponseEntity.ok(bookingRequestService.getAllBookingRequests(pageable));
+    }
+
+    @PreAuthorize("hasAnyAuthority('ADMIN','SUPER_ADMIN')")
+    @PutMapping("/requests/status/{id}")
+    public ResponseEntity<ApiResponse<?>> updateBookingRequestStatus(
+            @PathVariable java.util.UUID id,
+            @RequestBody com.web.bookingKol.domain.user.dtos.UpdateBookingRequestStatusDTO dto
+    ) {
+        String email = org.springframework.security.core.context.SecurityContextHolder
+                .getContext().getAuthentication().getName();
+        return ResponseEntity.ok(bookingRequestService.updateBookingRequestStatus(id, dto, email));
+    }
+
+
+
 }
 
