@@ -76,4 +76,14 @@ public class Contract {
 
     @Column(name = "amount", precision = 18, scale = 2)
     private BigDecimal amount;
+
+    @Size(max = 100)
+    @Column(name = "contract_number", length = 100)
+    private String contractNumber;
+
+    @Column(name = "signed_at_brand")
+    private Instant signedAtBrand;
+
+    @Column(name = "signed_at_kol")
+    private Instant signedAtKol;
 }
