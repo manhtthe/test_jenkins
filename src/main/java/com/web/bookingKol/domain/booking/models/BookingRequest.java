@@ -13,6 +13,7 @@ import org.hibernate.annotations.ColumnDefault;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -54,7 +55,7 @@ public class BookingRequest {
     private String dayOfWeek;
 
     @Column(name = "repeat_until")
-    private Instant repeatUntil;
+    private LocalDate repeatUntil;
 
     @ColumnDefault("now()")
     @Column(name = "created_at")

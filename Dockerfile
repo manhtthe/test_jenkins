@@ -1,25 +1,26 @@
-# =======================
-# 1. Build stage
-# =======================
-FROM gradle:8.10.2-jdk21 AS builder
+# --- build stage (Gradle) ---
+FROM gradle:8.10.2-jdk21-alpine AS build
 WORKDIR /app
 
-# Copy project
-COPY . .
+# copy file cấu hình trước để cache dependency
+COPY build.gradle settings.gradle ./
+COPY gradle ./gradle
+COPY gradlew ./
+RUN chmod +x gradlew
 
-# Build jar (bỏ qua test để nhanh hơn)
-RUN gradle clean bootJar --no-daemon -x test
+# tải dependency trước cho nhanh (không bắt buộc)
+RUN ./gradlew --no-daemon dependencies || true
 
-# =======================
-# 2. Runtime stage
-# =======================
-FROM eclipse-temurin:21-jre-jammy
+# copy source
+COPY src ./src
+
+# build jar (skip tests)
+RUN ./gradlew --no-daemon bootJar -x test
+
+# --- runtime stage ---
+FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
-
-# Copy jar từ stage build
-COPY --from=builder /app/build/libs/*.jar app.jar
-
+# copy file jar đã build (đường dẫn Gradle mặc định)
+COPY --from=build /app/build/libs/*.jar app.jar
 EXPOSE 8080
-ENV SPRING_PROFILES_ACTIVE=dev
-
-ENTRYPOINT ["java","-jar","app.jar"]
+ENTRYPOINT ["java","-jar","/app/app.jar"]
