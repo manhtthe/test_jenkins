@@ -50,6 +50,8 @@ dependencies {
     implementation 'org.json:json:20250517'
     implementation 'org.apache.poi:poi-ooxml:5.2.5'
     implementation 'fr.opensagres.xdocreport:org.apache.poi.xwpf.converter.pdf:1.0.6'
+    implementation 'org.json:json:20250517'
+    implementation 'com.github.ben-manes.caffeine:caffeine:3.2.2'
 }
 
 

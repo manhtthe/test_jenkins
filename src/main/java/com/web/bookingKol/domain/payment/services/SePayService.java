@@ -4,14 +4,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.web.bookingKol.common.Enums;
 import com.web.bookingKol.common.payload.ApiResponse;
 import com.web.bookingKol.config.TimezoneConfig;
+import com.web.bookingKol.domain.booking.models.Contract;
 import com.web.bookingKol.domain.booking.repositories.ContractRepository;
 import com.web.bookingKol.domain.payment.dtos.SePayWebhookRequest;
 import com.web.bookingKol.domain.payment.dtos.TransactionResult;
 import com.web.bookingKol.domain.payment.mappers.TransactionMapper;
+import com.web.bookingKol.domain.payment.models.Merchant;
 import com.web.bookingKol.domain.payment.models.Transaction;
 import com.web.bookingKol.domain.payment.repositories.TransactionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -22,6 +25,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -32,6 +36,10 @@ public class SePayService {
     private TransactionMapper transactionMapper;
     @Autowired
     private ContractRepository contractRepository;
+    @Autowired
+    private MerchantService merchantService;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     private final TransactionRepository transactionRepository;
     private TimezoneConfig timezoneConfig;
@@ -44,29 +52,37 @@ public class SePayService {
     }
 
     private final String SEPAY_API_URL = "https://qr.sepay.vn/img?";
-    private final String ACCOUNT = "96247LQACX";
-    private final String BANK = "BIDV";
-    private final String DESCRIPTION = "chuyen tien";
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public String createQRCode(UUID contractId, BigDecimal amount) {
+    public String createQRCode(BigDecimal amount, String transferContent) {
+        Merchant merchant = merchantService.getMerchantIsActive();
+        String accountNumber = merchant.getVaNumber() != null ? merchant.getVaNumber() : merchant.getAccountNumber();
+        String bank = merchant.getBank();
         return UriComponentsBuilder.fromUriString(SEPAY_API_URL)
-                .queryParam("acc", ACCOUNT)
-                .queryParam("bank", BANK)
+                .queryParam("acc", accountNumber)
+                .queryParam("bank", bank)
                 .queryParam("amount", amount != null ? amount : "")
-                .queryParam("des", DESCRIPTION + ":" + contractId)
+                .queryParam("des", transferContent)
                 .toUriString();
     }
 
     @Transactional
-    public ApiResponse<TransactionResult> handleWebhook(SePayWebhookRequest request) {
+    public ApiResponse<TransactionResult> handleWebhook(String receivedApiKey, SePayWebhookRequest request) {
+        Merchant merchant = merchantService.getMerchantIsActive();
+        if (receivedApiKey != null && receivedApiKey.startsWith("Apikey ")) {
+            String key = receivedApiKey.substring(7);
+            if (!passwordEncoder.matches(key, merchant.getApiKey())) {
+                throw new IllegalArgumentException("Invalid API key");
+            }
+        } else {
+            throw new IllegalArgumentException("Invalid API key");
+        }
         try {
             LocalDateTime transactionDate = LocalDateTime.parse(
                     request.getTransactionDate(),
                     DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
             );
             String content = request.getContent();
-
             Transaction tx = Transaction.builder()
                     .gateway(request.getGateway())
                     .transactionDate(transactionDate.atZone(ZONE).toInstant())
@@ -82,13 +98,27 @@ public class SePayService {
                     .body(objectMapper.writeValueAsString(request))
                     .build();
             UUID contractId = null;
-
-            if (content != null) {
-                contractId = UUID.fromString(content.trim().substring(content.indexOf(":") + 1));
-                contractRepository.findById(contractId).ifPresent(contract -> tx.setPayment(contract.getPayment()));
+            if (content != null && !content.isEmpty()) {
+                String fullUuid = content.trim().substring(0, 8) + "-" +
+                        content.substring(8, 12) + "-" +
+                        content.substring(12, 16) + "-" +
+                        content.substring(16, 20) + "-" +
+                        content.substring(20, 32);
+                contractId = UUID.fromString(fullUuid);
             }
-            transactionRepository.save(tx);
-            paymentService.updatePayment(transactionMapper.toDto(tx));
+            if (contractId != null) {
+                Optional<Contract> optionalContract = contractRepository.findById(contractId);
+                if (optionalContract.isPresent()) {
+                    Contract contract = optionalContract.get();
+                    tx.setPayment(contract.getPayment());
+                    transactionRepository.save(tx);
+                    paymentService.updatePayment(transactionMapper.toDto(tx));
+                } else {
+                    transactionRepository.save(tx);
+                }
+            } else {
+                transactionRepository.save(tx);
+            }
             TransactionResult tr = TransactionResult.builder()
                     .contractId(contractId)
                     .status(Enums.TransactionStatus.COMPLETED.name())
@@ -103,7 +133,6 @@ public class SePayService {
             throw new RuntimeException("Error saving webhook transaction: " + e.getMessage(), e);
         }
     }
-
 }
 
 

@@ -70,4 +70,8 @@ public class Payment {
 
     @Column(name = "paid_amount", precision = 18, scale = 2)
     private BigDecimal paidAmount;
+
+    @Column(name = "expires_at")
+    private Instant expiresAt;
+
 }

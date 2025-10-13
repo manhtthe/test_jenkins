@@ -25,5 +25,7 @@ public interface BookingRequestService {
                                                               int page,
                                                               int size);
 
+    ApiResponse<BookingSingleResDTO> getDetailBooking(UUID bookingRequestId);
+  
     void acceptBookingRequest(BookingRequest bookingRequest);
 }

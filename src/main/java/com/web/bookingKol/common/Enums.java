@@ -143,7 +143,7 @@ public class Enums {
         UNDERPAID,
         PAID,
         OVERPAID,
-        FAILED,
+        EXPIRED,
         REFUNDED,
         CANCELLED
     }

@@ -4,10 +4,7 @@ import com.web.bookingKol.domain.payment.dtos.SePayWebhookRequest;
 import com.web.bookingKol.domain.payment.services.SePayService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/payment")
@@ -17,7 +14,8 @@ public class SePayRestController {
 
 
     @PostMapping("/sepay/callback")
-    public ResponseEntity<?> handleWebhook(@RequestBody SePayWebhookRequest request) {
-        return ResponseEntity.ok().body(sePayService.handleWebhook(request));
+    public ResponseEntity<?> handleWebhook(@RequestBody SePayWebhookRequest request,
+                                           @RequestHeader(name = "Authorization") String authorizationHeader) {
+        return ResponseEntity.ok().body(sePayService.handleWebhook(authorizationHeader, request));
     }
 }

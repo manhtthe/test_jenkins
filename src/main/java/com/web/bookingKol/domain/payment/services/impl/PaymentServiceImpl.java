@@ -3,11 +3,13 @@ package com.web.bookingKol.domain.payment.services.impl;
 import com.web.bookingKol.common.Enums;
 import com.web.bookingKol.domain.booking.models.BookingRequest;
 import com.web.bookingKol.domain.booking.models.Contract;
-import com.web.bookingKol.domain.booking.services.BookingRequestService;
+import com.web.bookingKol.domain.booking.repositories.BookingRequestRepository;
 import com.web.bookingKol.domain.payment.dtos.PaymentReqDTO;
 import com.web.bookingKol.domain.payment.dtos.TransactionDTO;
+import com.web.bookingKol.domain.payment.models.Merchant;
 import com.web.bookingKol.domain.payment.models.Payment;
 import com.web.bookingKol.domain.payment.repositories.PaymentRepository;
+import com.web.bookingKol.domain.payment.services.MerchantService;
 import com.web.bookingKol.domain.payment.services.PaymentService;
 import com.web.bookingKol.domain.user.models.User;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
 @Service
@@ -23,12 +26,16 @@ public class PaymentServiceImpl implements PaymentService {
     @Autowired
     private PaymentRepository paymentRepository;
     @Autowired
-    private BookingRequestService bookingRequestService;
+    private BookingRequestRepository bookingRequestRepository;
+    @Autowired
+    private MerchantService merchantService;
 
     private final String VND_CURRENCY = "VND";
+    private final Integer EXPIRES_TIME = 15;
 
     @Override
     public PaymentReqDTO initiatePayment(BookingRequest bookingRequest, Contract contract, String qrUrl, User user, BigDecimal amount) {
+        Merchant merchant = merchantService.getMerchantIsActive();
         Payment payment = new Payment();
         payment.setId(UUID.randomUUID());
         payment.setContract(contract);
@@ -40,13 +47,17 @@ public class PaymentServiceImpl implements PaymentService {
         payment.setFailureReason(null);
         payment.setCreatedAt(Instant.now());
         payment.setUpdatedAt(null);
+        payment.setExpiresAt(Instant.now().plus(EXPIRES_TIME, ChronoUnit.MINUTES));
         paymentRepository.save(payment);
         return PaymentReqDTO.builder()
-                .bookingRequestId(bookingRequest.getId())
                 .contractId(contract.getId())
+                .amount(contract.getAmount())
                 .qrUrl(qrUrl)
                 .userId(user.getId())
-                .amount(contract.getAmount())
+                .expiresAt(payment.getExpiresAt())
+                .name(merchant.getName())
+                .bank(merchant.getBank())
+                .accountNumber(merchant.getAccountNumber())
                 .build();
     }
 
@@ -69,7 +80,9 @@ public class PaymentServiceImpl implements PaymentService {
             default -> Enums.PaymentStatus.OVERPAID.name();
         };
         if (status.equals(Enums.PaymentStatus.PAID.name()) || status.equals(Enums.PaymentStatus.OVERPAID.name())) {
-            bookingRequestService.acceptBookingRequest(payment.getContract().getBookingRequest());
+            BookingRequest bookingRequest = payment.getContract().getBookingRequest();
+            bookingRequest.setStatus(Enums.BookingStatus.ACCEPTED.name());
+            bookingRequestRepository.save(bookingRequest);
         }
         payment.setStatus(status);
         paymentRepository.save(payment);

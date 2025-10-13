@@ -32,10 +32,6 @@ public class Merchant {
     @Column(name = "api_key")
     private String apiKey;
 
-    @Size(max = 255)
-    @Column(name = "secret_key")
-    private String secretKey;
-
     @ColumnDefault("now()")
     @Column(name = "created_at")
     private Instant createdAt;
@@ -45,19 +41,18 @@ public class Merchant {
     private Instant updatedAt;
 
     @Size(max = 255)
-    @Column(name = "ownerName")
-    private String ownerName;
-
-    @Size(max = 255)
     @Column(name = "bank")
     private String bank;
 
     @Size(max = 255)
-    @Column(name = "accountNumber")
+    @Column(name = "account_number")
     private String accountNumber;
 
     @Size(max = 255)
-    @Column(name = "VANumber")
-    private String vANumber;
+    @Column(name = "va_number")
+    private String vaNumber;
+
+    @Column(name = "is_active")
+    private Boolean isActive;
 
 }

@@ -77,6 +77,7 @@ public class SecurityConfig {
                         .requestMatchers("/password/**").permitAll()
                         .requestMatchers("/admin/**").hasAuthority(Enums.Roles.ADMIN.name())
                         .requestMatchers("/kol/**").hasAuthority(Enums.Roles.KOL.name())
+                        .requestMatchers("/superadmin/**").hasAuthority(Enums.Roles.SUPER_ADMIN.name())
                         .requestMatchers(
                                 "/v3/api-docs/**",
                                 "/v3/api-docs",

@@ -12,6 +12,7 @@ import com.web.bookingKol.domain.booking.repositories.BookingRequestRepository;
 import com.web.bookingKol.domain.booking.services.BookingRequestService;
 import com.web.bookingKol.domain.booking.services.BookingValidationService;
 import com.web.bookingKol.domain.booking.services.ContractService;
+import com.web.bookingKol.domain.booking.services.SoftHoldBookingService;
 import com.web.bookingKol.domain.file.dtos.FileUsageDTO;
 import com.web.bookingKol.domain.file.mappers.FileUsageMapper;
 import com.web.bookingKol.domain.file.models.File;
@@ -60,6 +61,8 @@ public class BookingRequestServiceImpl implements BookingRequestService {
     private SePayService sePayService;
     @Autowired
     private PaymentService paymentService;
+    @Autowired
+    private SoftHoldBookingService softHoldBookingService;
     private final ZoneId ZONE;
     private TimezoneConfig timezoneConfig;
 
@@ -80,6 +83,13 @@ public class BookingRequestServiceImpl implements BookingRequestService {
                 .orElseThrow(() -> new EntityNotFoundException("User Id Not Found: " + userId));
         // --- 2. Delegate validation ---
         bookingValidationService.validateBookingRequest(bookingRequestDTO, kol);
+        //Check hold slot
+        if (!softHoldBookingService.checkAndReleaseSlot(kol.getId(),
+                bookingRequestDTO.getStartAt(),
+                bookingRequestDTO.getEndAt(),
+                userId.toString())) {
+            throw new IllegalArgumentException("The time slot is no longer held by you, please re-select!");
+        }
         // --- 3. Create Booking Request ---
         BookingRequest newBookingRequest = new BookingRequest();
         UUID bookingRequestId = UUID.randomUUID();
@@ -109,13 +119,15 @@ public class BookingRequestServiceImpl implements BookingRequestService {
             newBookingRequest.getContracts().add(contract);
         }
         // --- 6. Initiate Payment ---
+        String transferContent = contract.getId().toString();
         PaymentReqDTO paymentReqDTO = paymentService.initiatePayment(
                 newBookingRequest,
                 contract,
-                sePayService.createQRCode(contract.getId(), contract.getAmount()),
+                sePayService.createQRCode(contract.getAmount(), transferContent),
                 user,
                 contract.getAmount()
         );
+        paymentReqDTO.setTransferContent(transferContent);
         // --- 7. Build and return response ---
         return ApiResponse.<PaymentReqDTO>builder()
                 .status(HttpStatus.OK.value())
@@ -172,6 +184,16 @@ public class BookingRequestServiceImpl implements BookingRequestService {
     }
 
     @Override
+    public ApiResponse<BookingSingleResDTO> getDetailBooking(UUID bookingRequestId) {
+        BookingRequest bookingRequest = bookingRequestRepository.findById(bookingRequestId)
+                .orElseThrow(() -> new EntityNotFoundException("Booking Request Not Found"));
+        return ApiResponse.<BookingSingleResDTO>builder()
+                .status(HttpStatus.OK.value())
+                .message(List.of("Get detail booking request successfully!"))
+                .data(bookingSingleResMapper.toDto(bookingRequest))
+                .build();
+    }
+
     public void acceptBookingRequest(BookingRequest bookingRequest) {
         bookingRequest.setStatus(Enums.BookingStatus.ACCEPTED.name());
         bookingRequestRepository.save(bookingRequest);

@@ -19,6 +19,7 @@ public class PaymentDTO {
     private String failureReason;
     private Instant createdAt;
     private Instant updatedAt;
+    private Instant expiresAt;
 
     private Set<UUID> refundIds;
     private Set<UUID> transactionIds;
