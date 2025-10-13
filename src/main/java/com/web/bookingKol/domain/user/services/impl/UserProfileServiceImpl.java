@@ -2,6 +2,7 @@ package com.web.bookingKol.domain.user.services.impl;
 
 import com.web.bookingKol.common.payload.ApiResponse;
 import com.web.bookingKol.domain.user.dtos.UpdateProfileRequest;
+import com.web.bookingKol.domain.user.dtos.UserProfileResponse;
 import com.web.bookingKol.domain.user.models.Brand;
 import com.web.bookingKol.domain.user.models.User;
 import com.web.bookingKol.domain.user.repositories.BrandRepository;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -55,6 +57,60 @@ public class UserProfileServiceImpl implements UserProfileService {
                 .data(null)
                 .build();
     }
+
+    @Override
+    public ApiResponse<?> getProfile() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+
+        Brand brand = brandRepository.findByUser(user).orElse(null);
+
+        UserProfileResponse response = UserProfileResponse.builder()
+                .email(user.getEmail())
+                .fullName(user.getFullName())
+                .gender(user.getGender())
+                .phone(user.getPhone())
+                .address(user.getAddress())
+                .introduction(user.getIntroduction())
+                .brandName(brand != null ? brand.getBrandName() : null)
+                .dateOfBirth(brand != null ? brand.getDateOfBirth() : null)
+                .country(brand != null ? brand.getCountry() : null)
+                .build();
+
+        return ApiResponse.builder()
+                .status(HttpStatus.OK.value())
+                .message(List.of("Lấy thông tin thành công"))
+                .data(response)
+                .build();
+    }
+
+    @Override
+    public ApiResponse<?> getProfileByAdmin(UUID userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy user"));
+
+        Brand brand = brandRepository.findByUser(user).orElse(null);
+
+        UserProfileResponse response = UserProfileResponse.builder()
+                .email(user.getEmail())
+                .fullName(user.getFullName())
+                .gender(user.getGender())
+                .phone(user.getPhone())
+                .address(user.getAddress())
+                .introduction(user.getIntroduction())
+                .brandName(brand != null ? brand.getBrandName() : null)
+                .dateOfBirth(brand != null ? brand.getDateOfBirth() : null)
+                .country(brand != null ? brand.getCountry() : null)
+                .build();
+
+        return ApiResponse.builder()
+                .status(HttpStatus.OK.value())
+                .message(List.of("Lấy thông tin profile thành công"))
+                .data(response)
+                .build();
+    }
+
 }
 
 

@@ -1,5 +1,6 @@
 package com.web.bookingKol.domain.course;
 
+import com.web.bookingKol.domain.course.dtos.CoursePackageDTO;
 import com.web.bookingKol.domain.file.mappers.FileUsageMapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

@@ -23,10 +23,11 @@ FROM User u
 JOIN u.roles r
 JOIN Brand b ON b.user = u
 WHERE r.key = 'USER'
-  AND (:search IS NULL
-       OR LOWER(u.email) LIKE LOWER(CONCAT('%', :search, '%'))
-       OR LOWER(u.fullName) LIKE LOWER(CONCAT('%', :search, '%')))
+  AND (:search = '' OR :search IS NULL
+       OR LOWER(u.email) LIKE LOWER(CONCAT('%', CAST(:search as string), '%'))
+       OR LOWER(u.fullName) LIKE LOWER(CONCAT('%', CAST(:search as string), '%')))
 """)
+
     Page<BrandUserSummaryResponse> findBrandUsers(@Param("search") String search, Pageable pageable);
 
 }

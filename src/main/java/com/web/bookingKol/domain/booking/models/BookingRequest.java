@@ -11,6 +11,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -29,9 +30,8 @@ public class BookingRequest {
     @JoinColumn(name = "campaign_id", nullable = false)
     private Campaign campaign;
 
-    @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "kol_id", nullable = false)
+    @JoinColumn(name = "kol_id", nullable = true)
     private KolProfile kol;
 
     @Column(name = "description", length = Integer.MAX_VALUE)
@@ -63,6 +63,9 @@ public class BookingRequest {
     @ColumnDefault("now()")
     @Column(name = "updated_at")
     private Instant updatedAt;
+
+    @Column(name = "contract_amount", precision = 15, scale = 2)
+    private BigDecimal contractAmount;
 
     @OneToMany(mappedBy = "bookingRequest")
     private Set<Contract> contracts = new LinkedHashSet<>();

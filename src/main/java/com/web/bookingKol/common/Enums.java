@@ -28,7 +28,8 @@ public class Enums {
         SUPER_ADMIN(1),
         ADMIN(2),
         USER(3),
-        KOL(4);
+        KOL(4),
+        LIVE(5);
         private final Integer value;
 
         private Roles(Integer value) {

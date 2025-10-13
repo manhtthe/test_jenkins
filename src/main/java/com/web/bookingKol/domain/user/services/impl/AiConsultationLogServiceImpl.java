@@ -24,7 +24,6 @@ public class AiConsultationLogServiceImpl implements AiConsultationLogService {
     public Page<AiConsultationLogResponse> getAllLogs(String search, LocalDate startDate, LocalDate endDate, Pageable pageable) {
         Specification<AiConsultationLog> spec = (root, query, cb) -> cb.conjunction();
 
-        // Search
         if (search != null && !search.isBlank()) {
             spec = spec.and((root, query, cb) ->
                     cb.or(
