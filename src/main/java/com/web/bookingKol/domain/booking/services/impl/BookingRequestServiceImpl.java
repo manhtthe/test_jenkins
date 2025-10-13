@@ -194,4 +194,8 @@ public class BookingRequestServiceImpl implements BookingRequestService {
                 .build();
     }
 
+    public void acceptBookingRequest(BookingRequest bookingRequest) {
+        bookingRequest.setStatus(Enums.BookingStatus.ACCEPTED.name());
+        bookingRequestRepository.save(bookingRequest);
+    }
 }
