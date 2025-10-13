@@ -10,4 +10,6 @@ import java.util.UUID;
 @Repository
 public interface BookingPackageKolRepository extends JpaRepository<BookingPackageKol, UUID> {
     List<BookingPackageKol> findByPurchasedPackageId(UUID purchasedPackageId);
+
+    List<BookingPackageKol> findByPurchasedPackage_Campaign_Id(UUID purchasedPackageCampaignId);
 }
