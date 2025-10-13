@@ -4,7 +4,7 @@ import com.web.bookingKol.common.Enums;
 import com.web.bookingKol.common.UpdateEntityUtil;
 import com.web.bookingKol.common.exception.UserAlreadyExistsException;
 import com.web.bookingKol.common.payload.ApiResponse;
-import com.web.bookingKol.domain.file.FileService;
+import com.web.bookingKol.domain.file.services.FileService;
 import com.web.bookingKol.domain.file.FileValidator;
 import com.web.bookingKol.domain.file.dtos.FileDTO;
 import com.web.bookingKol.domain.file.dtos.FileUsageDTO;

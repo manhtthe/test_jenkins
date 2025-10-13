@@ -1,4 +1,4 @@
-package com.web.bookingKol.domain.file;
+package com.web.bookingKol.domain.file.services;
 
 import com.web.bookingKol.common.payload.ApiResponse;
 import com.web.bookingKol.domain.file.dtos.FileDTO;
@@ -13,6 +13,8 @@ import java.util.UUID;
 @Service
 public interface FileService {
     FileDTO uploadFilePoint(UUID uploaderId, MultipartFile file);
+
+    File getFileUploaded(UUID uploaderId, MultipartFile file);
 
     ApiResponse<FileDTO> uploadOneFile(UUID uploaderId, MultipartFile file);
 

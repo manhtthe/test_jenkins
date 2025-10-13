@@ -61,6 +61,7 @@ public class Enums {
         CONTRACT,
         COURSE_PACKAGE,
         SERVICE_PACKAGE,
+        ATTACHMENTS,
         OTHER
     }
 
@@ -97,6 +98,23 @@ public class Enums {
         EXPIRED
     }
 
+    @Getter
+    public enum BookingRules {
+        MIN_BOOKING_TIME(1),
+        MAX_BOOKING_TIME(3),
+        REST_TIME(1);
+        private final Integer value;
+
+        private BookingRules(Integer value) {
+            this.value = value;
+        }
+    }
+
+    @Getter
+    public enum BookingType{
+        SINGLE,
+    }
+
     // ---------------- PAYMENT ----------------
     @Getter
     public enum PaymentIntentStatus {
@@ -120,11 +138,21 @@ public class Enums {
     }
 
     @Getter
-    public enum PayoutStatus {
+    public enum PaymentStatus {
         PENDING,
-        PROCESSING,
+        UNDERPAID,
         PAID,
-        FAILED
+        OVERPAID,
+        FAILED,
+        REFUNDED,
+        CANCELLED
+    }
+
+    @Getter
+    public enum TransactionStatus {
+        COMPLETED,
+        FAILED,
+        CANCELLED
     }
 
     // ---------------- PLATFORM ----------------

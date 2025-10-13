@@ -1,5 +1,6 @@
 package com.web.bookingKol.domain.file;
 
+import com.web.bookingKol.domain.file.services.FileService;
 import com.web.bookingKol.domain.user.models.UserDetailsImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

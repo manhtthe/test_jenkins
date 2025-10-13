@@ -1,7 +1,9 @@
-package com.web.bookingKol.domain.file;
+package com.web.bookingKol.domain.file.services.impl;
 
 import com.web.bookingKol.common.Enums;
 import com.web.bookingKol.common.payload.ApiResponse;
+import com.web.bookingKol.domain.file.FileValidator;
+import com.web.bookingKol.domain.file.services.SupabaseStorageService;
 import com.web.bookingKol.domain.file.dtos.FileDTO;
 import com.web.bookingKol.domain.file.dtos.FileUsageDTO;
 import com.web.bookingKol.domain.file.mappers.FileMapper;
@@ -10,6 +12,7 @@ import com.web.bookingKol.domain.file.models.File;
 import com.web.bookingKol.domain.file.models.FileUsage;
 import com.web.bookingKol.domain.file.repositories.FileRepository;
 import com.web.bookingKol.domain.file.repositories.FileUsageRepository;
+import com.web.bookingKol.domain.file.services.FileService;
 import com.web.bookingKol.domain.user.models.User;
 import com.web.bookingKol.domain.user.repositories.UserRepository;
 import org.apache.commons.io.FilenameUtils;
@@ -43,10 +46,16 @@ public class FileServiceImpl implements FileService {
     @Transactional
     @Override
     public FileDTO uploadFilePoint(UUID uploaderId, MultipartFile file) {
+        File fileUploading = getFileUploaded(uploaderId, file);
+        return fileMapper.toDto(fileUploading);
+    }
+
+    @Transactional
+    @Override
+    public File getFileUploaded(UUID uploaderId, MultipartFile file) {
         if (file == null || file.getSize() <= 0) {
             throw new IllegalArgumentException("File must not be null or empty");
         }
-
         File fileUploading = new File();
         if (fileValidator.isImage(file)) {
             fileUploading.setFileType(Enums.FileType.IMAGE.name());
@@ -75,7 +84,7 @@ public class FileServiceImpl implements FileService {
         fileUploading.setSizeBytes(file.getSize());
         fileUploading.setCreatedAt(Instant.now());
         fileRepository.save(fileUploading);
-        return fileMapper.toDto(fileUploading);
+        return fileUploading;
     }
 
     @Transactional

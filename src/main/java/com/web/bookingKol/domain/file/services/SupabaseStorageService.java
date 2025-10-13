@@ -1,4 +1,4 @@
-package com.web.bookingKol.domain.file;
+package com.web.bookingKol.domain.file.services;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;

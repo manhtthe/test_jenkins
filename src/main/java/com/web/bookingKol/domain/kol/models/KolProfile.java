@@ -4,7 +4,7 @@ import com.web.bookingKol.common.Enums;
 import com.web.bookingKol.domain.file.models.FileUsage;
 import com.web.bookingKol.domain.user.models.User;
 import com.web.bookingKol.domain.booking.models.BookingRequest;
-import com.web.bookingKol.temp_models.Payout;
+import com.web.bookingKol.domain.payment.models.Payout;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
