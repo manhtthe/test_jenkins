@@ -4,6 +4,8 @@ import com.web.bookingKol.common.Enums;
 import com.web.bookingKol.common.payload.ApiResponse;
 import com.web.bookingKol.domain.booking.models.BookingPackageKol;
 import com.web.bookingKol.domain.booking.models.Campaign;
+import com.web.bookingKol.domain.file.mappers.FileMapper;
+import com.web.bookingKol.domain.file.services.FileService;
 import com.web.bookingKol.domain.kol.models.KolProfile;
 import com.web.bookingKol.domain.kol.repositories.KolProfileRepository;
 import com.web.bookingKol.domain.user.dtos.BookKolRequest;
@@ -30,6 +32,8 @@ public class BookingServiceImpl implements BookingService {
     private final KolProfileRepository kolProfileRepository;
     private final CampaignRepository campaignRepository;
     private final UserRepository userRepository;
+    private final FileService fileService;
+    private final FileMapper fileMapper;
 
     @Override
     @Transactional
@@ -57,6 +61,22 @@ public class BookingServiceImpl implements BookingService {
         campaign.setCreatedAt(Instant.now());
         campaign.setUpdatedAt(Instant.now());
         campaignRepository.save(campaign);
+
+        if (req.getAttachment() != null && !req.getAttachment().isEmpty()) {
+            try {
+                var fileDTO = fileService.uploadFilePoint(user.getId(), req.getAttachment());
+                fileService.createFileUsage(
+                        fileMapper.toEntity(fileDTO),
+                        campaign.getId(),
+                        Enums.TargetType.CAMPAIGN.name(),
+                        false
+                );
+
+            } catch (Exception e) {
+                throw new RuntimeException("Lỗi khi upload file đính kèm: " + e.getMessage(), e);
+            }
+        }
+
 
         PurchasedServicePackage purchased = new PurchasedServicePackage();
         purchased.setId(UUID.randomUUID());

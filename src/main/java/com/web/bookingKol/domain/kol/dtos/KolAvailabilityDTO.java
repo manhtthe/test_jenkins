@@ -1,9 +1,11 @@
 package com.web.bookingKol.domain.kol.dtos;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.web.bookingKol.domain.kol.models.KolAvailability;
 import com.web.bookingKol.domain.user.models.User;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.UUID;
 
 public class KolAvailabilityDTO {
@@ -11,7 +13,10 @@ public class KolAvailabilityDTO {
     private OffsetDateTime startAt;
     private OffsetDateTime endAt;
     private String status;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private String note;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private List<WorkTimeDTO> timeLine;
 
     private UUID kolId;
     private String fullName;
@@ -19,7 +24,8 @@ public class KolAvailabilityDTO {
     private String phone;
     private String avatarUrl;
 
-    public KolAvailabilityDTO() {}
+    public KolAvailabilityDTO() {
+    }
 
     public KolAvailabilityDTO(KolAvailability availability) {
         this.id = availability.getId();
@@ -38,34 +44,91 @@ public class KolAvailabilityDTO {
         }
     }
 
-    public UUID getId() { return id; }
-    public void setId(UUID id) { this.id = id; }
+    public UUID getId() {
+        return id;
+    }
 
-    public OffsetDateTime getStartAt() { return startAt; }
-    public void setStartAt(OffsetDateTime startAt) { this.startAt = startAt; }
+    public void setId(UUID id) {
+        this.id = id;
+    }
 
-    public OffsetDateTime getEndAt() { return endAt; }
-    public void setEndAt(OffsetDateTime endAt) { this.endAt = endAt; }
+    public OffsetDateTime getStartAt() {
+        return startAt;
+    }
 
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
+    public void setStartAt(OffsetDateTime startAt) {
+        this.startAt = startAt;
+    }
 
-    public String getNote() { return note; }
-    public void setNote(String note) { this.note = note; }
+    public OffsetDateTime getEndAt() {
+        return endAt;
+    }
 
-    public UUID getKolId() { return kolId; }
-    public void setKolId(UUID userId) { this.kolId = userId; }
+    public void setEndAt(OffsetDateTime endAt) {
+        this.endAt = endAt;
+    }
 
-    public String getFullName() { return fullName; }
-    public void setFullName(String fullName) { this.fullName = fullName; }
+    public String getStatus() {
+        return status;
+    }
 
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
+    public void setStatus(String status) {
+        this.status = status;
+    }
 
-    public String getPhone() { return phone; }
-    public void setPhone(String phone) { this.phone = phone; }
+    public String getNote() {
+        return note;
+    }
 
-    public String getAvatarUrl() { return avatarUrl; }
-    public void setAvatarUrl(String avatarUrl) { this.avatarUrl = avatarUrl; }
+    public void setNote(String note) {
+        this.note = note;
+    }
+
+    public UUID getKolId() {
+        return kolId;
+    }
+
+    public void setKolId(UUID userId) {
+        this.kolId = userId;
+    }
+
+    public String getFullName() {
+        return fullName;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
+    }
+
+    public List<WorkTimeDTO> getTimeLine() {
+        return timeLine;
+    }
+
+    public void setTimeLine(List<WorkTimeDTO> timeLine) {
+        this.timeLine = timeLine;
+    }
 }
-

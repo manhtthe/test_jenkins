@@ -32,6 +32,36 @@ public class KolAvailabilityController {
         return ResponseEntity.ok(availabilityService.getKolSchedule(kolId, start, end));
     }
 
+    @PreAuthorize("hasAnyAuthority('ADMIN','SUPER_ADMIN','KOL','LIVE')")
+    @PostMapping("/schedule/{kolId}")
+    public ResponseEntity<ApiResponse<KolAvailabilityDTO>> createKolAvailability(
+            @PathVariable UUID kolId,
+            @RequestBody KolAvailabilityDTO availabilityDTO
+    ) {
+
+        return ResponseEntity.ok(availabilityService.createKolSchedule(kolId,availabilityDTO));
+    }
+
+    @PreAuthorize("hasAnyAuthority('ADMIN','SUPER_ADMIN','KOL','LIVE')")
+    @GetMapping("time-line/{availabilityId}")
+    public ResponseEntity<ApiResponse<KolAvailabilityDTO>> getKolAvailabilityById(
+            @PathVariable UUID availabilityId
+    ) {
+        return ResponseEntity.ok(availabilityService.getKolAvailabilityById(availabilityId));
+    }
+
+    @PreAuthorize("hasAnyAuthority('ADMIN','SUPER_ADMIN','KOL','LIVE')")
+    @GetMapping("/time-line/kol/{kolId}")
+    public ResponseEntity<ApiResponse<List<KolAvailabilityDTO>>> getKolAvailabilitiesByKol(
+            @PathVariable UUID kolId,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime startDate,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime endDate,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return ResponseEntity.ok(availabilityService.getKolAvailabilitiesByKol(kolId, startDate, endDate, page, size));
+    }
+
 }
-
-

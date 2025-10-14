@@ -24,7 +24,7 @@ public class CategoryController {
         return new ResponseEntity<>(categoryService.createCategory(category), HttpStatus.CREATED);
     }
 
-    @PreAuthorize("hasAnyAuthority('ADMIN','SUPER_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN','SUPER_ADMIN','KOL')")
     @GetMapping
     public ResponseEntity<ApiResponse<List<Category>>> getCategories() {
         return ResponseEntity.ok(categoryService.getAllCategories());
@@ -32,7 +32,7 @@ public class CategoryController {
 
 
 
-    @PreAuthorize("hasAnyAuthority('ADMIN','SUPER_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN','SUPER_ADMIN','KOL')")
     @GetMapping("/{id}")
     public ResponseEntity<Category>  getCategories(@PathVariable("id") UUID id) {
         return ResponseEntity.ok(categoryService.findByCategoryId(id).getData());

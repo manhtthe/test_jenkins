@@ -1,6 +1,7 @@
 package com.web.bookingKol.domain.user.dtos;
 
 import lombok.Data;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -21,4 +22,6 @@ public class BookKolRequest {
     private LocalDate endDate;
     private String recurrencePattern;
     private List<UUID> liveIds;
+
+    private MultipartFile attachment;
 }

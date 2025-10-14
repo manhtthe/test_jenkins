@@ -1,6 +1,8 @@
 package com.web.bookingKol.domain.kol.repositories;
 
 import com.web.bookingKol.domain.kol.models.KolAvailability;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -38,6 +40,20 @@ public interface KolAvailabilityRepository extends JpaRepository<KolAvailability
             @Param("kolId") UUID kolId,
             @Param("start") OffsetDateTime start,
             @Param("end") OffsetDateTime end
+    );
+
+    @Query("""
+    SELECT a FROM KolAvailability a
+    WHERE a.kol.id = :kolId
+    AND (:startDate IS NULL OR a.startAt >= :startDate)
+    AND (:endDate IS NULL OR a.endAt <= :endDate)
+    ORDER BY a.startAt DESC
+""")
+    Page<KolAvailability> findByKolIdAndDateRangePaged(
+            @Param("kolId") UUID kolId,
+            @Param("startDate") OffsetDateTime startDate,
+            @Param("endDate") OffsetDateTime endDate,
+            Pageable pageable
     );
 
 

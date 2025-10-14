@@ -21,10 +21,11 @@ public class BookingController {
     private final BookingService bookingService;
 
     @PreAuthorize("hasAuthority('USER')")
-    @PostMapping("/packages")
-    public ResponseEntity<ApiResponse<?>> bookKol(@RequestBody BookKolRequest request) {
+    @PostMapping(value = "/packages", consumes = {"multipart/form-data"})
+    public ResponseEntity<ApiResponse<?>> bookKol(@ModelAttribute BookKolRequest request) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         return ResponseEntity.ok(bookingService.bookKol(request, email));
     }
+
 }
 

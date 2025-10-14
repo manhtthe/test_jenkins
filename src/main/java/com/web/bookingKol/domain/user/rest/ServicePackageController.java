@@ -2,6 +2,7 @@ package com.web.bookingKol.domain.user.rest;
 
 
 import com.web.bookingKol.common.payload.ApiResponse;
+import com.web.bookingKol.domain.user.dtos.ServicePackageDTO;
 import com.web.bookingKol.domain.user.services.impl.ServicePackageServiceImpl;
 import com.web.bookingKol.temp_models.ServicePackage;
 import lombok.RequiredArgsConstructor;
@@ -20,10 +21,11 @@ public class ServicePackageController {
 
     @PreAuthorize("hasAnyAuthority('USER')")
     @GetMapping
-    public ResponseEntity<ApiResponse<List<ServicePackage>>> getAllPackages(
+    public ResponseEntity<ApiResponse<List<ServicePackageDTO>>> getAllPackages(
             @RequestParam(required = false) String type
     ) {
         return ResponseEntity.ok(servicePackageService.getAllPackages(type));
     }
+
 }
 

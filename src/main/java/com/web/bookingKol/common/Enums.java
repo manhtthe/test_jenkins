@@ -62,7 +62,8 @@ public class Enums {
         COURSE_PACKAGE,
         SERVICE_PACKAGE,
         ATTACHMENTS,
-        OTHER
+        OTHER,
+        CAMPAIGN
     }
 
     @Getter
