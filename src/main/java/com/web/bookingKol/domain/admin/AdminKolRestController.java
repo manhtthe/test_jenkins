@@ -1,5 +1,6 @@
 package com.web.bookingKol.domain.admin;
 
+import com.web.bookingKol.common.Enums;
 import com.web.bookingKol.domain.kol.dtos.NewKolDTO;
 import com.web.bookingKol.domain.kol.dtos.UpdateKolDTO;
 import com.web.bookingKol.domain.kol.services.KolProfileService;
@@ -26,9 +27,10 @@ public class AdminKolRestController {
     public ResponseEntity<?> getAllKolProfile(@RequestParam(required = false) BigDecimal minBookingPrice,
                                               @RequestParam(required = false) Boolean isAvailable,
                                               @RequestParam(required = false) Double minRating,
+                                              @RequestParam(required = false) Enums.Roles role,
                                               @RequestParam(defaultValue = "0") int page,
                                               @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(kolProfileService.getAllKol(minBookingPrice, isAvailable, minRating, page, size));
+        return ResponseEntity.ok(kolProfileService.getAllKol(minBookingPrice, isAvailable, minRating, page, size, role));
     }
 
     @PostMapping("/create-new-kol")

@@ -1,5 +1,6 @@
 package com.web.bookingKol.domain.kol.dtos;
 
+import com.web.bookingKol.common.Enums;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -29,6 +30,7 @@ public class KolCreatedDTO {
     private BigDecimal minBookingPrice;
     private Boolean isAvailable;
     private Instant createdAt;
+    private Enums.Roles role;
 
     private Set<CategoryDTO> categories;
 }

@@ -1,5 +1,6 @@
 package com.web.bookingKol.domain.kol.services;
 
+import com.web.bookingKol.common.Enums;
 import com.web.bookingKol.common.payload.ApiResponse;
 import com.web.bookingKol.domain.file.dtos.FileUsageDTO;
 import com.web.bookingKol.domain.kol.dtos.*;
@@ -22,13 +23,15 @@ public interface KolProfileService {
                                                Boolean isAvailable,
                                                Double minRating,
                                                int page,
-                                               int size);
+                                               int size,
+                                               Enums.Roles role);
 
     ApiResponse<Page<KolProfileDTO>> getAllKolAvailable(Double minRating,
                                                         UUID categoryId,
                                                         BigDecimal minPrice,
                                                         int page,
-                                                        int size
+                                                        int size,
+                                                        Enums.Roles role
     );
 
     ApiResponse<List<KolProfileDTO>> getAllKolProfilesByCategoryId(UUID categoryId);

@@ -33,7 +33,7 @@ public class KolCreatedMapper {
         dto.setMinBookingPrice(kol.getMinBookingPrice());
         dto.setIsAvailable(kol.getIsAvailable());
         dto.setCreatedAt(kol.getCreatedAt());
-
+        dto.setRole(kol.getRole());
         dto.setCategories(categoryMapper.toDtoSet(kol.getCategories()));
         return dto;
     }

@@ -1,5 +1,6 @@
 package com.web.bookingKol.domain.kol.rest;
 
+import com.web.bookingKol.common.Enums;
 import com.web.bookingKol.domain.kol.services.KolProfileService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -29,10 +30,11 @@ public class KolProfileRestController {
             @RequestParam(required = false) Double minRating,
             @RequestParam(required = false) UUID categoryId,
             @RequestParam(required = false) BigDecimal minPrice,
+            @RequestParam(required = false) Enums.Roles role,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         return ResponseEntity.ok(
-                kolProfileService.getAllKolAvailable(minRating, categoryId, minPrice, page, size)
+                kolProfileService.getAllKolAvailable(minRating, categoryId, minPrice, page, size, role)
         );
     }
 
