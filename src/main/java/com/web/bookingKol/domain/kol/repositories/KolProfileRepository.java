@@ -1,5 +1,6 @@
 package com.web.bookingKol.domain.kol.repositories;
 
+import com.web.bookingKol.common.Enums;
 import com.web.bookingKol.domain.kol.models.KolProfile;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -43,12 +44,14 @@ public interface KolProfileRepository extends JpaRepository<KolProfile, UUID> {
                   AND (:minRating IS NULL OR k.overallRating >= :minRating)
                   AND (:categoryId IS NULL OR c.id = :categoryId)
                   AND (:minPrice IS NULL OR k.minBookingPrice >= :minPrice)
+                  AND (:role IS NULL OR k.role = :role)
             """)
     Page<KolProfile> findAllKolAvailableWithFilter(
             @Param("userStatus") String userStatus,
             @Param("minRating") Double minRating,
             @Param("categoryId") UUID categoryId,
             @Param("minPrice") BigDecimal minPrice,
+            @Param("role") Enums.Roles role,
             Pageable pageable
     );
 
@@ -59,11 +62,13 @@ public interface KolProfileRepository extends JpaRepository<KolProfile, UUID> {
                 WHERE (:minBookingPrice IS NULL OR k.minBookingPrice >= :minBookingPrice)
                   AND (:isAvailable IS NULL OR k.isAvailable = :isAvailable)
                   AND (:minRating IS NULL OR k.overallRating >= :minRating)
+                  AND (:role IS NULL OR k.role = :role)
             """)
     Page<KolProfile> findAllFiltered(
             @Param("minBookingPrice") BigDecimal minBookingPrice,
             @Param("isAvailable") Boolean isAvailable,
             @Param("minRating") Double minRating,
+            @Param("role") Enums.Roles role,
             Pageable pageable
     );
 

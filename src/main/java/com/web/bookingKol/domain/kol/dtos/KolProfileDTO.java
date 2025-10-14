@@ -1,10 +1,10 @@
 package com.web.bookingKol.domain.kol.dtos;
 
+import com.web.bookingKol.common.Enums;
 import com.web.bookingKol.domain.file.dtos.FileUsageDTO;
 import lombok.Data;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.util.Set;
 import java.util.UUID;
 
@@ -21,6 +21,7 @@ public class KolProfileDTO {
     private Boolean isAvailable;
     private Double overallRating;
     private Integer feedbackCount;
+    private Enums.Roles role;
 
     private Set<CategoryDTO> categories;
     private Set<FileUsageDTO> fileUsageDtos;

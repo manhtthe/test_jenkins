@@ -1,5 +1,6 @@
 package com.web.bookingKol.domain.kol.dtos;
 
+import com.web.bookingKol.common.Enums;
 import com.web.bookingKol.domain.file.dtos.FileUsageDTO;
 import lombok.Data;
 
@@ -30,6 +31,7 @@ public class KolDetailDTO {
     private Instant deletedAt;
     private Double overallRating;
     private Integer feedbackCount;
+    private Enums.Roles role;
 
     private Set<CategoryDTO> categories;
     private Set<FileUsageDTO> fileUsageDtos;

@@ -1,5 +1,6 @@
 package com.web.bookingKol.domain.kol.dtos;
 
+import com.web.bookingKol.common.Enums;
 import com.web.bookingKol.common.StrongPassword;
 import com.web.bookingKol.domain.file.dtos.FileUsageDTO;
 import jakarta.validation.constraints.Email;
@@ -35,6 +36,7 @@ public class NewKolDTO implements Serializable {
     private String languages;
     private String rateCardNote;
     private BigDecimal minBookingPrice;
+    private Enums.Roles role;
 
     private Set<UUID> categoryIds;
     private Set<FileUsageDTO> fileUsageDtos;

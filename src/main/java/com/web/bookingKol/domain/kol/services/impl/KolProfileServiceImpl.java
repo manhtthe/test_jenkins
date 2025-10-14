@@ -4,7 +4,6 @@ import com.web.bookingKol.common.Enums;
 import com.web.bookingKol.common.UpdateEntityUtil;
 import com.web.bookingKol.common.exception.UserAlreadyExistsException;
 import com.web.bookingKol.common.payload.ApiResponse;
-import com.web.bookingKol.domain.file.services.FileService;
 import com.web.bookingKol.domain.file.FileValidator;
 import com.web.bookingKol.domain.file.dtos.FileDTO;
 import com.web.bookingKol.domain.file.dtos.FileUsageDTO;
@@ -14,6 +13,7 @@ import com.web.bookingKol.domain.file.models.File;
 import com.web.bookingKol.domain.file.models.FileUsage;
 import com.web.bookingKol.domain.file.repositories.FileRepository;
 import com.web.bookingKol.domain.file.repositories.FileUsageRepository;
+import com.web.bookingKol.domain.file.services.FileService;
 import com.web.bookingKol.domain.kol.dtos.*;
 import com.web.bookingKol.domain.kol.mappers.KolCreatedMapper;
 import com.web.bookingKol.domain.kol.mappers.KolDetailMapper;
@@ -105,10 +105,11 @@ public class KolProfileServiceImpl implements KolProfileService {
             Boolean isAvailable,
             Double minRating,
             int page,
-            int size
+            int size,
+            Enums.Roles role
     ) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("overallRating").descending());
-        Page<KolProfileDTO> kolDtos = kolProfileRepository.findAllFiltered(minBookingPrice, isAvailable, minRating, pageable)
+        Page<KolProfileDTO> kolDtos = kolProfileRepository.findAllFiltered(minBookingPrice, isAvailable, minRating, role, pageable)
                 .map(kol -> {
                     KolProfileDTO dto = kolProfileMapper.toDto(kol);
                     dto.setFileUsageDtos(getActiveCoverFiles(dto.getFileUsageDtos()));
@@ -123,10 +124,10 @@ public class KolProfileServiceImpl implements KolProfileService {
 
     @Override
     public ApiResponse<Page<KolProfileDTO>> getAllKolAvailable(
-            Double minRating, UUID categoryId, BigDecimal minPrice, int page, int size) {
+            Double minRating, UUID categoryId, BigDecimal minPrice, int page, int size, Enums.Roles role) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "overallRating"));
         Page<KolProfileDTO> kolProfilePage = kolProfileRepository
-                .findAllKolAvailableWithFilter(Enums.UserStatus.ACTIVE.name(), minRating, categoryId, minPrice, pageable)
+                .findAllKolAvailableWithFilter(Enums.UserStatus.ACTIVE.name(), minRating, categoryId, minPrice, role, pageable)
                 .map(kol -> {
                     KolProfileDTO dto = kolProfileMapper.toDto(kol);
                     dto.setFileUsageDtos(getActiveCoverFiles(dto.getFileUsageDtos()));
@@ -233,6 +234,9 @@ public class KolProfileServiceImpl implements KolProfileService {
         kolProfile.setCreatedAt(Instant.now());
         kolProfile.setDob(newKolDTO.getDob());
         kolProfile.setExperience(newKolDTO.getExperience());
+        if (newKolDTO.getRole().equals(Enums.Roles.LIVE)) {
+            kolProfile.setRole(Enums.Roles.LIVE);
+        }
         if (newKolDTO.getCategoryIds() != null && !newKolDTO.getCategoryIds().isEmpty()) {
             Set<Category> categories = newKolDTO.getCategoryIds().stream()
                     .map(catId -> categoryRepository.findById(catId)

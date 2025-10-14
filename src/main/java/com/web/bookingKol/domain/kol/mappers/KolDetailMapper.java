@@ -35,7 +35,7 @@ public class KolDetailMapper {
         dto.setDeletedAt(kol.getDeletedAt());
         dto.setOverallRating(kol.getOverallRating());
         dto.setFeedbackCount(kol.getFeedbackCount());
-
+        dto.setRole(kol.getRole());
         dto.setCategories(categoryMapper.toDtoSet(kol.getCategories()));
 
         if (kol.getFileUsages() != null) {
