@@ -3,7 +3,11 @@ package com.web.bookingKol.domain.kol.services;
 
 import com.web.bookingKol.common.payload.ApiResponse;
 import com.web.bookingKol.domain.kol.dtos.KolAvailabilityDTO;
+import com.web.bookingKol.domain.kol.dtos.TimeSlotDTO;
 import com.web.bookingKol.domain.kol.models.KolAvailability;
+import com.web.bookingKol.domain.kol.models.KolWorkTimeDTO;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -23,5 +27,14 @@ public interface KolAvailabilityService {
             int page,
             int size
     );
+
+    ApiResponse<Page<TimeSlotDTO>> getKolFreeTimes(
+            UUID kolId,
+            OffsetDateTime startDate,
+            OffsetDateTime endDate,
+            Pageable pageable
+    );
+
+    ApiResponse<KolWorkTimeDTO> updateKolWorkTimeByAdmin(UUID workTimeId, KolWorkTimeDTO dto);
 
 }

@@ -1,24 +1,21 @@
-package com.web.bookingKol.domain.kol.dtos;
+package com.web.bookingKol.domain.kol.models;
 
-
-import com.web.bookingKol.domain.kol.models.KolWorkTime;
 import lombok.*;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class WorkTimeDTO {
+public class KolWorkTimeDTO {
     private UUID id;
     private OffsetDateTime startAt;
     private OffsetDateTime endAt;
     private String note;
     private String status;
 
-    public WorkTimeDTO(KolWorkTime entity) {
+    public KolWorkTimeDTO(KolWorkTime entity) {
         this.id = entity.getId();
         this.startAt = entity.getStartAt();
         this.endAt = entity.getEndAt();
@@ -26,3 +23,4 @@ public class WorkTimeDTO {
         this.status = entity.getStatus();
     }
 }
+
