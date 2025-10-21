@@ -95,6 +95,7 @@ public class Enums {
         DRAFT,
         SENT,
         SIGNED,
+        COMPLETED,
         CANCELLED,
         EXPIRED
     }
@@ -112,8 +113,16 @@ public class Enums {
     }
 
     @Getter
-    public enum BookingType{
+    public enum BookingType {
         SINGLE,
+    }
+
+    @Getter
+    public enum KOLWorkTimeStatus {
+        REQUESTED,
+        ACCEPTED,
+        CANCELLED,
+        COMPLETED
     }
 
     // ---------------- PAYMENT ----------------
@@ -151,9 +160,11 @@ public class Enums {
 
     @Getter
     public enum TransactionStatus {
+        PENDING,
         COMPLETED,
         FAILED,
-        CANCELLED
+        CANCELLED,
+        ORPHANED
     }
 
     // ---------------- PLATFORM ----------------
