@@ -1,5 +1,6 @@
 package com.web.bookingKol.domain.kol.models;
 
+import com.web.bookingKol.domain.booking.models.BookingRequest;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -20,6 +21,10 @@ public class KolWorkTime {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "availability_id")
     private KolAvailability availability;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @JoinColumn(name = "booking_request_id", nullable = true)
+    private BookingRequest bookingRequest;
 
     @NotNull
     @Column(name = "start_at", nullable = false)
