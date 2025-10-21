@@ -11,6 +11,8 @@ import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Getter
@@ -29,11 +31,11 @@ public class KolAvailability {
 
     @NotNull
     @Column(name = "start_at", nullable = false)
-    private OffsetDateTime startAt;
+    private Instant startAt;
 
     @NotNull
     @Column(name = "end_at", nullable = false)
-    private OffsetDateTime endAt;
+    private Instant endAt;
 
     @Size(max = 50)
     @Column(name = "status", length = 50)

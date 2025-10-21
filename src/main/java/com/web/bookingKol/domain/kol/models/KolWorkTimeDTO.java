@@ -2,6 +2,7 @@ package com.web.bookingKol.domain.kol.models;
 
 import lombok.*;
 
+import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
@@ -10,8 +11,8 @@ import java.util.UUID;
 @AllArgsConstructor
 public class KolWorkTimeDTO {
     private UUID id;
-    private OffsetDateTime startAt;
-    private OffsetDateTime endAt;
+    private Instant startAt;
+    private Instant endAt;
     private String note;
     private String status;
 

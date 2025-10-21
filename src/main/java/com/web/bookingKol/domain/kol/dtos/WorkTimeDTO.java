@@ -4,6 +4,7 @@ package com.web.bookingKol.domain.kol.dtos;
 import com.web.bookingKol.domain.kol.models.KolWorkTime;
 import lombok.*;
 
+import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
@@ -13,8 +14,8 @@ import java.util.UUID;
 @AllArgsConstructor
 public class WorkTimeDTO {
     private UUID id;
-    private OffsetDateTime startAt;
-    private OffsetDateTime endAt;
+    private Instant startAt;
+    private Instant endAt;
     private String note;
     private String status;
 

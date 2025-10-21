@@ -47,7 +47,7 @@ public class KolAvailabilityServiceImpl implements KolAvailabilityService {
     private KolWorkTimeRepository kolWorkTimeRepository;
 
     @Override
-    public ApiResponse<List<KolAvailabilityDTO>> getKolSchedule(UUID kolId, OffsetDateTime start, OffsetDateTime end) {
+    public ApiResponse<List<KolAvailabilityDTO>> getKolSchedule(UUID kolId, Instant start, Instant end) {
         var list = kolAvailabilityRepository.findByKolIdAndDateRange(kolId, start, end)
                 .stream()
                 .map(KolAvailabilityDTO::new)
@@ -178,8 +178,8 @@ public class KolAvailabilityServiceImpl implements KolAvailabilityService {
     @Override
     public ApiResponse<List<KolAvailabilityDTO>> getKolAvailabilitiesByKol(
             UUID kolId,
-            OffsetDateTime startDate,
-            OffsetDateTime endDate,
+            Instant startDate,
+            Instant endDate,
             int page,
             int size
     ) {
@@ -203,8 +203,8 @@ public class KolAvailabilityServiceImpl implements KolAvailabilityService {
     @Override
     public ApiResponse<Page<TimeSlotDTO>> getKolFreeTimes(
             UUID kolId,
-            OffsetDateTime startDate,
-            OffsetDateTime endDate,
+            Instant startDate,
+            Instant endDate,
             Pageable pageable
     ) {
         List<KolAvailability> availabilities = kolAvailabilityRepository.findAvailabilities(kolId, startDate, endDate);
@@ -215,8 +215,8 @@ public class KolAvailabilityServiceImpl implements KolAvailabilityService {
         List<TimeSlotDTO> allFreeSlots = new ArrayList<>();
 
         for (KolAvailability a : availabilities) {
-            OffsetDateTime freeStart = a.getStartAt();
-            OffsetDateTime freeEnd = a.getEndAt();
+            Instant freeStart = a.getStartAt();
+            Instant freeEnd = a.getEndAt();
 
             List<KolWorkTime> overlaps = workTimes.stream()
                     .filter(w -> w.getStartAt().isBefore(freeEnd) && w.getEndAt().isAfter(freeStart))
@@ -228,7 +228,7 @@ public class KolAvailabilityServiceImpl implements KolAvailabilityService {
                 continue;
             }
 
-            OffsetDateTime cursor = freeStart;
+            Instant cursor = freeStart;
             for (KolWorkTime w : overlaps) {
                 if (w.getStartAt().isAfter(cursor)) {
                     allFreeSlots.add(new TimeSlotDTO(cursor, w.getStartAt()));

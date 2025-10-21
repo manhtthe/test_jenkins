@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.web.bookingKol.domain.kol.models.KolAvailability;
 import com.web.bookingKol.domain.user.models.User;
 
+import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,8 +13,8 @@ import java.util.UUID;
 public class KolAvailabilityDTO {
 
     private UUID id;
-    private OffsetDateTime startAt;
-    private OffsetDateTime endAt;
+    private Instant startAt;
+    private Instant endAt;
     private String status;
 
     private String note;
@@ -60,19 +61,19 @@ public class KolAvailabilityDTO {
         this.id = id;
     }
 
-    public OffsetDateTime getStartAt() {
+    public Instant getStartAt() {
         return startAt;
     }
 
-    public void setStartAt(OffsetDateTime startAt) {
+    public void setStartAt(Instant startAt) {
         this.startAt = startAt;
     }
 
-    public OffsetDateTime getEndAt() {
+    public Instant getEndAt() {
         return endAt;
     }
 
-    public void setEndAt(OffsetDateTime endAt) {
+    public void setEndAt(Instant endAt) {
         this.endAt = endAt;
     }
 
