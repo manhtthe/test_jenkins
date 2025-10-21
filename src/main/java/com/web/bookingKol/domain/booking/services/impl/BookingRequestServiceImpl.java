@@ -75,6 +75,8 @@ public class BookingRequestServiceImpl implements BookingRequestService {
     private KolAvailabilityRepository kolAvailabilityRepository;
     @Autowired
     private KolWorkTimeService kolWorkTimeService;
+    @Autowired
+    private BookingDetailMapper bookingDetailMapper;
 
     @Transactional
     @Override
