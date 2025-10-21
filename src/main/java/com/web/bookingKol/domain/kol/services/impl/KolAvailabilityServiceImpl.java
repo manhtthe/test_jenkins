@@ -92,7 +92,7 @@ public class KolAvailabilityServiceImpl implements KolAvailabilityService {
             availability.setStartAt(dto.getStartAt());
             availability.setEndAt(dto.getEndAt());
             availability.setCreatedAt(Instant.now());
-            availability.setStatus("SUCCESS");
+            availability.setStatus("AVAILABLE");
 
             if (dto.getWorkTimes() != null && !dto.getWorkTimes().isEmpty()) {
                 List<KolWorkTime> workTimes = dto.getWorkTimes().stream().map(wtDto -> {

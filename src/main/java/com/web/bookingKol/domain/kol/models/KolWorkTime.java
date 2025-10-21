@@ -46,8 +46,4 @@ public class KolWorkTime {
     @Column(name = "status", length = 50)
     private String status;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "booking_request_id")
-    private BookingRequest bookingRequest;
-
 }
