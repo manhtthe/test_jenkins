@@ -28,6 +28,10 @@ public class KolWorkTime {
     @JoinColumn(name = "availability_id", nullable = false)
     private KolAvailability availability;
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @JoinColumn(name = "booking_request_id", nullable = true)
+    private BookingRequest bookingRequest;
+
     @NotNull
     @Column(name = "start_at", nullable = false)
     private Instant startAt;
