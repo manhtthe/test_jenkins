@@ -20,7 +20,8 @@ public interface KolProfileRepository extends JpaRepository<KolProfile, UUID> {
             SELECT k FROM KolProfile k 
             LEFT JOIN FETCH k.fileUsages fu
             LEFT JOIN FETCH fu.file f
-            WHERE k.user.id = :userId AND fu.isActive = true ORDER BY f.fileType DESC , fu.createdAt DESC
+            WHERE f.fileType IN ('IMAGE', 'VIDEO') AND f.status = 'ACTIVE'
+            AND k.user.id = :userId AND fu.isActive = true ORDER BY f.fileType DESC , fu.createdAt DESC
             """)
     Optional<KolProfile> findByUserId(@Param("userId") UUID userId);
 
@@ -28,7 +29,8 @@ public interface KolProfileRepository extends JpaRepository<KolProfile, UUID> {
             SELECT k FROM KolProfile k 
             LEFT JOIN FETCH k.fileUsages fu
             LEFT JOIN FETCH fu.file f
-            WHERE k.id = :kolId AND fu.isActive = true ORDER BY f.fileType DESC , fu.createdAt DESC
+            WHERE f.fileType IN ('IMAGE', 'VIDEO') AND f.status = 'ACTIVE'
+            AND k.id = :kolId AND fu.isActive = true ORDER BY f.fileType DESC , fu.createdAt DESC
             """)
     Optional<KolProfile> findByKolId(@Param("kolId") UUID kolId);
 
