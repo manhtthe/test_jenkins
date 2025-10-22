@@ -5,11 +5,13 @@ import com.web.bookingKol.common.payload.ApiResponse;
 import com.web.bookingKol.domain.booking.dtos.BookingDetailDTO;
 import com.web.bookingKol.domain.booking.dtos.BookingSingleReqDTO;
 import com.web.bookingKol.domain.booking.dtos.BookingSingleResDTO;
+import com.web.bookingKol.domain.booking.dtos.UpdateBookingReqDTO;
 import com.web.bookingKol.domain.booking.mappers.BookingDetailMapper;
 import com.web.bookingKol.domain.booking.mappers.BookingSingleResMapper;
 import com.web.bookingKol.domain.booking.models.BookingRequest;
 import com.web.bookingKol.domain.booking.models.Contract;
 import com.web.bookingKol.domain.booking.repositories.BookingRequestRepository;
+import com.web.bookingKol.domain.booking.repositories.ContractRepository;
 import com.web.bookingKol.domain.booking.services.BookingRequestService;
 import com.web.bookingKol.domain.booking.services.BookingValidationService;
 import com.web.bookingKol.domain.booking.services.ContractService;
@@ -36,7 +38,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AuthorizationServiceException;
-import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -44,6 +45,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 
@@ -77,6 +79,8 @@ public class BookingRequestServiceImpl implements BookingRequestService {
     private KolWorkTimeService kolWorkTimeService;
     @Autowired
     private BookingDetailMapper bookingDetailMapper;
+    @Autowired
+    private ContractRepository contractRepository;
 
     @Transactional
     @Override
@@ -108,6 +112,9 @@ public class BookingRequestServiceImpl implements BookingRequestService {
         newBookingRequest.setStatus(Enums.BookingStatus.REQUESTED.name());
         newBookingRequest.setBookingType(Enums.BookingType.SINGLE.name());
         newBookingRequest.setCreatedAt(Instant.now());
+        newBookingRequest.setFullName(bookingRequestDTO.getFullName());
+        newBookingRequest.setEmail(bookingRequestDTO.getEmail());
+        newBookingRequest.setPhone(bookingRequestDTO.getPhone());
         // --- 4. Handle File Attachments ---
         if (attachedFiles != null && !attachedFiles.isEmpty()) {
             for (MultipartFile file : attachedFiles) {
@@ -134,8 +141,8 @@ public class BookingRequestServiceImpl implements BookingRequestService {
         );
         paymentReqDTO.setTransferContent(transferContent);
         // --- Create KOL work time ---
-        KolAvailability ka = kolAvailabilityRepository.findAvailability(kol.getId(), bookingRequestDTO.getStartAt().atZone(ZoneOffset.UTC).toOffsetDateTime(),
-                bookingRequestDTO.getEndAt().atZone(ZoneOffset.UTC).toOffsetDateTime());
+        KolAvailability ka = kolAvailabilityRepository.findAvailability(kol.getId(), bookingRequestDTO.getStartAt(),
+                bookingRequestDTO.getEndAt());
         kolWorkTimeService.createNewKolWorkTime(ka, newBookingRequest, Enums.BookingStatus.REQUESTED.name(),
                 bookingRequestDTO.getStartAt(),
                 bookingRequestDTO.getEndAt());
@@ -212,8 +219,10 @@ public class BookingRequestServiceImpl implements BookingRequestService {
 
     @Override
     public ApiResponse<BookingDetailDTO> getDetailSingleRequestAdmin(UUID bookingRequestId) {
-        BookingRequest bookingRequest = bookingRequestRepository.findById(bookingRequestId)
-                .orElseThrow(() -> new EntityNotFoundException("Booking Request Not Found"));
+        BookingRequest bookingRequest = bookingRequestRepository.findByIdWithAttachedFiles(bookingRequestId);
+        if (bookingRequest == null) {
+            throw new EntityNotFoundException("Booking Request Not Found");
+        }
         return ApiResponse.<BookingDetailDTO>builder()
                 .status(HttpStatus.OK.value())
                 .message(List.of("Get detail booking request successfully!"))
@@ -243,8 +252,10 @@ public class BookingRequestServiceImpl implements BookingRequestService {
 
     @Override
     public ApiResponse<BookingDetailDTO> getDetailSingleRequestKol(UUID bookingRequestId, UUID kolId) {
-        BookingRequest bookingRequest = bookingRequestRepository.findById(bookingRequestId)
-                .orElseThrow(() -> new EntityNotFoundException("Booking Request Not Found"));
+        BookingRequest bookingRequest = bookingRequestRepository.findByIdWithAttachedFiles(bookingRequestId);
+        if (bookingRequest == null) {
+            throw new EntityNotFoundException("Booking Request Not Found");
+        }
         if (!bookingRequest.getKol().getId().equals(kolId)) {
             throw new AuthorizationServiceException("You are not authorized to view this booking request");
         }
@@ -257,14 +268,95 @@ public class BookingRequestServiceImpl implements BookingRequestService {
 
     @Override
     public ApiResponse<BookingDetailDTO> getDetailSingleRequestUser(UUID bookingRequestId, UUID userId) {
-        BookingRequest bookingRequest = bookingRequestRepository.findById(bookingRequestId)
-                .orElseThrow(() -> new EntityNotFoundException("Booking Request Not Found"));
+        BookingRequest bookingRequest = bookingRequestRepository.findByIdWithAttachedFiles(bookingRequestId);
+        if (bookingRequest == null) {
+            throw new EntityNotFoundException("Booking Request Not Found");
+        }
         if (!bookingRequest.getUser().getId().equals(userId)) {
             throw new AuthorizationServiceException("You are not authorized to view this booking request");
         }
         return ApiResponse.<BookingDetailDTO>builder()
                 .status(HttpStatus.OK.value())
                 .message(List.of("Get detail booking request successfully!"))
+                .data(bookingDetailMapper.toDto(bookingRequest))
+                .build();
+    }
+
+    @Transactional
+    @Override
+    public ApiResponse<BookingDetailDTO> updateBookingRequest(UUID userId, UUID bookingRequestId, UpdateBookingReqDTO updateBookingReqDTO, List<MultipartFile> attachedFiles, List<UUID> fileIdsToDelete) {
+        BookingRequest bookingRequest = bookingRequestRepository.findByIdWithAttachedFiles(bookingRequestId);
+        if (bookingRequest == null) {
+            throw new EntityNotFoundException("Booking Request Not Found: " + bookingRequestId);
+        }
+        if (!bookingRequest.getUser().getId().equals(userId)) {
+            throw new AuthorizationServiceException("You are not authorized to update this booking request");
+        }
+        if (bookingRequest.getUpdatedAt() != null) {
+            throw new IllegalArgumentException("Booking request only can be updated once");
+        }
+        if (Instant.now().isAfter(bookingRequest.getStartAt().minus(24, ChronoUnit.HOURS))) {
+            throw new IllegalArgumentException("Booking request only can be updated before 24 hours");
+        }
+        if (updateBookingReqDTO != null) {
+            if (updateBookingReqDTO.getFullName() != null) {
+                bookingRequest.setFullName(updateBookingReqDTO.getFullName());
+            }
+            if (updateBookingReqDTO.getPhone() != null) {
+                bookingRequest.setPhone(updateBookingReqDTO.getPhone());
+            }
+            if (updateBookingReqDTO.getEmail() != null) {
+                bookingRequest.setEmail(updateBookingReqDTO.getEmail());
+            }
+            if (updateBookingReqDTO.getLocation() != null) {
+                bookingRequest.setLocation(updateBookingReqDTO.getLocation());
+            }
+            if (updateBookingReqDTO.getDescription() != null) {
+                bookingRequest.setDescription(updateBookingReqDTO.getDescription());
+            }
+        }
+        if (attachedFiles != null && !attachedFiles.isEmpty()) {
+            for (MultipartFile file : attachedFiles) {
+                File fileUploaded = fileService.getFileUploaded(userId, file);
+                FileUsageDTO fileUsageDTO = fileService.createFileUsage(fileUploaded, bookingRequestId, Enums.TargetType.ATTACHMENTS.name(), false);
+                bookingRequest.getAttachedFiles().add(fileUsageMapper.toEntity(fileUsageDTO));
+            }
+        }
+        if (fileIdsToDelete != null) {
+            bookingRequest.getAttachedFiles().removeIf(fileUsage ->
+                    fileIdsToDelete.contains(fileUsage.getFile().getId()));
+            fileService.deleteFile(fileIdsToDelete);
+        }
+//        bookingRequest.setUpdatedAt(Instant.now());
+        bookingRequestRepository.saveAndFlush(bookingRequest);
+        return ApiResponse.<BookingDetailDTO>builder()
+                .status(HttpStatus.OK.value())
+                .message(List.of("Update booking request successfully"))
+                .data(bookingDetailMapper.toDto(bookingRequest))
+                .build();
+    }
+
+    @Override
+    public ApiResponse<BookingDetailDTO> cancelBookingRequest(UUID userId, UUID bookingRequestId) {
+        BookingRequest bookingRequest = bookingRequestRepository.findByIdWithAttachedFiles(bookingRequestId);
+        if (bookingRequest == null) {
+            throw new EntityNotFoundException("Booking Request Not Found: " + bookingRequestId);
+        }
+        if (bookingRequest.getStatus().equalsIgnoreCase(Enums.BookingStatus.CANCELLED.name())) {
+            throw new IllegalArgumentException("Booking request is already cancelled");
+        }
+        if (!bookingRequest.getUser().getId().equals(userId)) {
+            throw new AuthorizationServiceException("You are not authorized to cancel this booking request");
+        }
+        bookingRequest.setStatus(Enums.BookingStatus.CANCELLED.name());
+//        bookingRequest.setUpdatedAt(Instant.now());
+        bookingRequestRepository.saveAndFlush(bookingRequest);
+        Contract contract = contractRepository.findByRequestId(bookingRequestId);
+        contract.setStatus(Enums.ContractStatus.CANCELLED.name());
+        contractRepository.saveAndFlush(contract);
+        return ApiResponse.<BookingDetailDTO>builder()
+                .status(HttpStatus.OK.value())
+                .message(List.of("Cancel booking request successfully"))
                 .data(bookingDetailMapper.toDto(bookingRequest))
                 .build();
     }
