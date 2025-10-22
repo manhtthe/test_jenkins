@@ -25,12 +25,8 @@ public class KolWorkTime {
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @JoinColumn(name = "availability_id", nullable = false)
+    @JoinColumn(name = "availability_id")
     private KolAvailability availability;
-
-    @ManyToOne(fetch = FetchType.LAZY, optional = true)
-    @JoinColumn(name = "booking_request_id", nullable = true)
-    private BookingRequest bookingRequest;
 
     @NotNull
     @Column(name = "start_at", nullable = false)
