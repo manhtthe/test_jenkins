@@ -47,6 +47,7 @@ import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -359,5 +360,19 @@ public class BookingRequestServiceImpl implements BookingRequestService {
                 .message(List.of("Cancel booking request successfully"))
                 .data(bookingDetailMapper.toDto(bookingRequest))
                 .build();
+    }
+
+    @Override
+    public void checkAndCompleteBookingRequest(BookingRequest bookingRequest) {
+        Set<String> finishedStatuses = Set.of(
+                Enums.KOLWorkTimeStatus.COMPLETED.name(),
+                Enums.KOLWorkTimeStatus.CANCELLED.name()
+        );
+        boolean allWorkTimesFinished = bookingRequest.getKolWorkTimes().stream()
+                .allMatch(kolWorkTime -> finishedStatuses.contains(kolWorkTime.getStatus()));
+        if (allWorkTimesFinished) {
+            bookingRequest.setStatus(Enums.BookingStatus.COMPLETED.name());
+            bookingRequestRepository.saveAndFlush(bookingRequest);
+        }
     }
 }
