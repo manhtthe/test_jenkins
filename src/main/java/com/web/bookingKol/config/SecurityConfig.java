@@ -62,8 +62,11 @@ public class SecurityConfig {
         http
                 .cors(cors -> cors.configurationSource(request -> {
                     CorsConfiguration corsConfiguration = new CorsConfiguration();
-                    corsConfiguration.setAllowedOrigins(List.of("http://localhost:5173"));
-                    corsConfiguration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                    corsConfiguration.setAllowedOrigins(List.of(
+                            "http://localhost",
+                            "http://localhost:5173",
+                            "https://untumid-disposingly-santos.ngrok-free.dev"));
+                    corsConfiguration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
                     corsConfiguration.setAllowedHeaders(List.of("Authorization", "Cache-Control", "Content-Type"));
                     corsConfiguration.setAllowCredentials(true);
                     return corsConfiguration;
@@ -73,10 +76,11 @@ public class SecurityConfig {
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/actuator/**").hasAuthority(Enums.Roles.SUPER_ADMIN.name())
                         .requestMatchers("/kol-profiles/**", "/courses/**").permitAll()
-                        .requestMatchers("/register/**").permitAll()
+                        .requestMatchers("/register/**", "/payment/**").permitAll()
                         .requestMatchers("/password/**").permitAll()
                         .requestMatchers("/admin/**").hasAuthority(Enums.Roles.ADMIN.name())
                         .requestMatchers("/kol/**").hasAuthority(Enums.Roles.KOL.name())
+                        .requestMatchers("/superadmin/**").hasAuthority(Enums.Roles.SUPER_ADMIN.name())
                         .requestMatchers(
                                 "/v3/api-docs/**",
                                 "/v3/api-docs",

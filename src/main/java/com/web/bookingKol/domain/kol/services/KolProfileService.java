@@ -1,12 +1,15 @@
 package com.web.bookingKol.domain.kol.services;
 
+import com.web.bookingKol.common.Enums;
 import com.web.bookingKol.common.payload.ApiResponse;
 import com.web.bookingKol.domain.file.dtos.FileUsageDTO;
 import com.web.bookingKol.domain.kol.dtos.*;
 import com.web.bookingKol.domain.kol.models.KolProfile;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -16,13 +19,25 @@ public interface KolProfileService {
 
     ApiResponse<KolDetailDTO> getKolProfileByKolId(UUID kolId);
 
-    ApiResponse<List<KolProfileDTO>> getAllKol();
+    ApiResponse<Page<KolProfileDTO>> getAllKol(BigDecimal minBookingPrice,
+                                               Boolean isAvailable,
+                                               Double minRating,
+                                               int page,
+                                               int size,
+                                               Enums.Roles role,
+                                               String nameKeyword
+    );
 
-    ApiResponse<List<KolProfileDTO>> getAllKolAvailable();
+    ApiResponse<Page<KolProfileDTO>> getAllKolAvailable(Double minRating,
+                                                        UUID categoryId,
+                                                        BigDecimal minPrice,
+                                                        int page,
+                                                        int size,
+                                                        Enums.Roles role,
+                                                        String nameKeyword
+    );
 
     ApiResponse<List<KolProfileDTO>> getAllKolProfilesByCategoryId(UUID categoryId);
-
-    ApiResponse<List<KolProfileDTO>> getAllKolWithFilter(FilterKolDTO filterKolDTO);
 
     //KOL personal information management
     ApiResponse<KolCreatedDTO> createNewKolAccount(UUID AdminId, NewKolDTO newKolDTO, MultipartFile fileAvatar);
@@ -35,6 +50,8 @@ public interface KolProfileService {
     ApiResponse<List<FileUsageDTO>> getAllKolMediaFiles(UUID kolId);
 
     ApiResponse<?> activateOrDeactivateKolMediaFile(UUID kolId, List<UUID> fileUsageIds, boolean isActive);
+
+    ApiResponse<?> deleteFileMedia(UUID changerId, UUID fileId);
 
     ApiResponse<FileUsageDTO> setCoverImage(UUID kolId, UUID fileId);
 

@@ -1,5 +1,7 @@
 package com.web.bookingKol.domain.kol.dtos;
 
+import com.web.bookingKol.common.Enums;
+import jakarta.persistence.Column;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -23,4 +25,8 @@ public class UpdateKolDTO implements Serializable {
     private String languages;
     private String rateCardNote;
     private BigDecimal minBookingPrice;
+    private Enums.Roles role;
+
+    private Double overallRating;
+    private Integer feedbackCount;
 }

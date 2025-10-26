@@ -1,5 +1,6 @@
 package com.web.bookingKol.domain.admin;
 
+import com.web.bookingKol.common.Enums;
 import com.web.bookingKol.domain.kol.dtos.NewKolDTO;
 import com.web.bookingKol.domain.kol.dtos.UpdateKolDTO;
 import com.web.bookingKol.domain.kol.services.KolProfileService;
@@ -12,6 +13,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -20,6 +22,17 @@ import java.util.UUID;
 public class AdminKolRestController {
     @Autowired
     private KolProfileService kolProfileService;
+
+    @GetMapping("/all")
+    public ResponseEntity<?> getAllKolProfile(@RequestParam(required = false) BigDecimal minBookingPrice,
+                                              @RequestParam(required = false) Boolean isAvailable,
+                                              @RequestParam(required = false) Double minRating,
+                                              @RequestParam(required = false) Enums.Roles role,
+                                              @RequestParam(required = false) String nameKeyword,
+                                              @RequestParam(defaultValue = "0") int page,
+                                              @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(kolProfileService.getAllKol(minBookingPrice, isAvailable, minRating, page, size, role, nameKeyword));
+    }
 
     @PostMapping("/create-new-kol")
     public ResponseEntity<?> createNewKolAccount(@AuthenticationPrincipal UserDetailsImpl userDetails,
@@ -107,5 +120,13 @@ public class AdminKolRestController {
         UUID adminId = userDetails.getId();
         return ResponseEntity.status(HttpStatus.OK)
                 .body(kolProfileService.removeCategoryForKol(adminId, kolId, categoryId));
+    }
+
+    @PatchMapping("/medias/delete/{fileId}")
+    public ResponseEntity<?> deleteFileMedia(@AuthenticationPrincipal UserDetailsImpl userDetails,
+                                             @PathVariable UUID fileId) {
+        UUID changerId = userDetails.getId();
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(kolProfileService.deleteFileMedia(changerId, fileId));
     }
 }

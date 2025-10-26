@@ -1,9 +1,9 @@
 package com.web.bookingKol.domain.kol.services.impl;
 
 import com.web.bookingKol.common.Enums;
+import com.web.bookingKol.common.UpdateEntityUtil;
 import com.web.bookingKol.common.exception.UserAlreadyExistsException;
 import com.web.bookingKol.common.payload.ApiResponse;
-import com.web.bookingKol.domain.file.FileService;
 import com.web.bookingKol.domain.file.FileValidator;
 import com.web.bookingKol.domain.file.dtos.FileDTO;
 import com.web.bookingKol.domain.file.dtos.FileUsageDTO;
@@ -13,11 +13,14 @@ import com.web.bookingKol.domain.file.models.File;
 import com.web.bookingKol.domain.file.models.FileUsage;
 import com.web.bookingKol.domain.file.repositories.FileRepository;
 import com.web.bookingKol.domain.file.repositories.FileUsageRepository;
+import com.web.bookingKol.domain.file.services.FileService;
 import com.web.bookingKol.domain.kol.dtos.*;
+import com.web.bookingKol.domain.kol.mappers.FeedbackUserViewMapper;
 import com.web.bookingKol.domain.kol.mappers.KolCreatedMapper;
 import com.web.bookingKol.domain.kol.mappers.KolDetailMapper;
 import com.web.bookingKol.domain.kol.mappers.KolProfileMapper;
 import com.web.bookingKol.domain.kol.models.Category;
+import com.web.bookingKol.domain.kol.models.KolFeedback;
 import com.web.bookingKol.domain.kol.models.KolProfile;
 import com.web.bookingKol.domain.kol.repositories.CategoryRepository;
 import com.web.bookingKol.domain.kol.repositories.KolProfileRepository;
@@ -28,9 +31,11 @@ import com.web.bookingKol.domain.user.repositories.RoleRepository;
 import com.web.bookingKol.domain.user.repositories.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.BeanWrapper;
-import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -38,7 +43,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.beans.PropertyDescriptor;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -73,15 +78,25 @@ public class KolProfileServiceImpl implements KolProfileService {
     private FileRepository fileRepository;
     @Autowired
     private FileValidator fileValidator;
+    @Autowired
+    private FeedbackUserViewMapper feedbackUserViewMapper;
 
     @Override
     public ApiResponse<KolDetailDTO> getKolProfileByUserId(UUID userId) {
         KolProfile kolProfile = kolProfileRepository.findByUserId(userId)
                 .orElseThrow(() -> new EntityNotFoundException("KolProfile not found for userId: " + userId));
+        KolDetailDTO kolDetailDTO = kolDetailMapper.toDto(kolProfile);
+        if (kolProfile.getKolFeedbacks() != null) {
+            kolDetailDTO.setFeedbacks(kolProfile.getKolFeedbacks().stream()
+                    .filter(KolFeedback::getIsPublic)
+                    .sorted(Comparator.comparing(KolFeedback::getCreatedAt).reversed())
+                    .limit(3)
+                    .map(feedbackUserViewMapper::toDto).collect(Collectors.toSet()));
+        }
         return ApiResponse.<KolDetailDTO>builder()
                 .status(HttpStatus.OK.value())
                 .message(List.of("Get kol profile success"))
-                .data(kolDetailMapper.toDto(kolProfile))
+                .data(kolDetailDTO)
                 .build();
     }
 
@@ -89,53 +104,60 @@ public class KolProfileServiceImpl implements KolProfileService {
     public ApiResponse<KolDetailDTO> getKolProfileByKolId(UUID kolId) {
         KolProfile kolProfile = kolProfileRepository.findByKolId(kolId)
                 .orElseThrow(() -> new EntityNotFoundException("KolProfile not found for kolId: " + kolId));
+        KolDetailDTO kolDetailDTO = kolDetailMapper.toDto(kolProfile);
+        if (kolProfile.getKolFeedbacks() != null) {
+            kolDetailDTO.setFeedbacks(kolProfile.getKolFeedbacks().stream()
+                    .filter(KolFeedback::getIsPublic)
+                    .sorted(Comparator.comparing(KolFeedback::getCreatedAt).reversed())
+                    .limit(3)
+                    .map(feedbackUserViewMapper::toDto).collect(Collectors.toSet()));
+        }
         return ApiResponse.<KolDetailDTO>builder()
                 .status(HttpStatus.OK.value())
                 .message(List.of("Get kol profile by kolId success"))
-                .data(kolDetailMapper.toDto(kolProfile))
+                .data(kolDetailDTO)
                 .build();
     }
 
-    /**
-     * Retrieve all KOL profiles from the repository.
-     * Each KOL profile will contain cover files that are active and marked as cover.
-     *
-     * @return ApiResponse containing the list of all KOL profiles
-     */
     @Override
-    public ApiResponse<List<KolProfileDTO>> getAllKol() {
-        List<KolProfileDTO> KolProfileDTOS = kolProfileRepository.findAll()
-                .stream().map(kol -> {
+    public ApiResponse<Page<KolProfileDTO>> getAllKol(
+            BigDecimal minBookingPrice,
+            Boolean isAvailable,
+            Double minRating,
+            int page,
+            int size,
+            Enums.Roles role,
+            String nameKeyword
+    ) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("overallRating").descending());
+        Page<KolProfileDTO> kolDtos = kolProfileRepository.findAllFiltered(minBookingPrice, isAvailable, minRating, role, nameKeyword, pageable)
+                .map(kol -> {
                     KolProfileDTO dto = kolProfileMapper.toDto(kol);
                     dto.setFileUsageDtos(getActiveCoverFiles(dto.getFileUsageDtos()));
                     return dto;
-                }).toList();
-        return ApiResponse.<List<KolProfileDTO>>builder()
+                });
+        return ApiResponse.<Page<KolProfileDTO>>builder()
                 .status(HttpStatus.OK.value())
                 .message(List.of("Get all kol profiles success"))
-                .data(KolProfileDTOS)
+                .data(kolDtos)
                 .build();
     }
 
-    /**
-     * Retrieve all available KOL profiles that have ACTIVE status.
-     * Each KOL profile will contain cover files that are active and marked as cover.
-     *
-     * @return ApiResponse containing the list of available KOL profiles
-     */
     @Override
-    public ApiResponse<List<KolProfileDTO>> getAllKolAvailable() {
-        List<KolProfileDTO> KolProfileDTOS = kolProfileRepository
-                .findAllKolAvailable(Enums.UserStatus.ACTIVE.name())
-                .stream().map(kol -> {
+    public ApiResponse<Page<KolProfileDTO>> getAllKolAvailable(
+            Double minRating, UUID categoryId, BigDecimal minPrice, int page, int size, Enums.Roles role, String nameKeyword) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "overallRating"));
+        Page<KolProfileDTO> kolProfilePage = kolProfileRepository
+                .findAllKolAvailableWithFilter(Enums.UserStatus.ACTIVE.name(), minRating, categoryId, minPrice, role, nameKeyword, pageable)
+                .map(kol -> {
                     KolProfileDTO dto = kolProfileMapper.toDto(kol);
                     dto.setFileUsageDtos(getActiveCoverFiles(dto.getFileUsageDtos()));
                     return dto;
-                }).toList();
-        return ApiResponse.<List<KolProfileDTO>>builder()
+                });
+        return ApiResponse.<Page<KolProfileDTO>>builder()
                 .status(HttpStatus.OK.value())
-                .message(List.of("Get all kol profiles success"))
-                .data(KolProfileDTOS)
+                .message(List.of("Get available KOL profiles success"))
+                .data(kolProfilePage)
                 .build();
     }
 
@@ -158,42 +180,6 @@ public class KolProfileServiceImpl implements KolProfileService {
                 .status(HttpStatus.OK.value())
                 .message(List.of("Get all kol by Category success!"))
                 .data(KolProfileDTOS)
-                .build();
-    }
-
-    /**
-     * Retrieve KOL profiles based on multiple filters such as rating, category, price, and city.
-     * Only active KOLs will be returned.
-     * Each KOL profile will contain cover files that are active and marked as cover.
-     *
-     * @param filterKolDTO the filter criteria for searching KOLs
-     * @return ApiResponse containing the list of KOL profiles that match the filters,
-     * or NOT_FOUND status if none are found
-     */
-    @Override
-    public ApiResponse<List<KolProfileDTO>> getAllKolWithFilter(FilterKolDTO filterKolDTO) {
-        Double minRating = filterKolDTO.getMinRating() != null ? filterKolDTO.getMinRating() : null;
-        UUID categoryId = filterKolDTO.getCategoryId() != null ? filterKolDTO.getCategoryId() : null;
-        Double minPrice = filterKolDTO.getMinBookingPrice() != null ? filterKolDTO.getMinBookingPrice() : null;
-        String city = filterKolDTO.getCity() != null ? filterKolDTO.getCity().trim() : null;
-        List<KolProfile> kolProfiles = kolProfileRepository
-                .filterKols(minRating, categoryId, minPrice, city, Enums.UserStatus.ACTIVE.name());
-        if (kolProfiles.isEmpty()) {
-            return ApiResponse.<List<KolProfileDTO>>builder()
-                    .status(HttpStatus.NOT_FOUND.value())
-                    .message(List.of("No kol profiles found with the given filters"))
-                    .data(null)
-                    .build();
-        }
-        List<KolProfileDTO> kolProfileDTOS = kolProfiles.stream().map(kol -> {
-            KolProfileDTO dto = kolProfileMapper.toDto(kol);
-            dto.setFileUsageDtos(getActiveCoverFiles(dto.getFileUsageDtos()));
-            return dto;
-        }).toList();
-        return ApiResponse.<List<KolProfileDTO>>builder()
-                .status(HttpStatus.OK.value())
-                .message(List.of("Get all kol profiles success"))
-                .data(kolProfileDTOS)
                 .build();
     }
 
@@ -269,6 +255,9 @@ public class KolProfileServiceImpl implements KolProfileService {
         kolProfile.setCreatedAt(Instant.now());
         kolProfile.setDob(newKolDTO.getDob());
         kolProfile.setExperience(newKolDTO.getExperience());
+        if (newKolDTO.getRole().equals(Enums.Roles.LIVE)) {
+            kolProfile.setRole(Enums.Roles.LIVE);
+        }
         if (newKolDTO.getCategoryIds() != null && !newKolDTO.getCategoryIds().isEmpty()) {
             Set<Category> categories = newKolDTO.getCategoryIds().stream()
                     .map(catId -> categoryRepository.findById(catId)
@@ -313,8 +302,8 @@ public class KolProfileServiceImpl implements KolProfileService {
         User kolUser = kolProfile.getUser();
         // Update kol user info and kol profile info
         if (updateKolDTO != null) {
-            BeanUtils.copyProperties(updateKolDTO, kolUser, getNullPropertyNames(updateKolDTO));
-            BeanUtils.copyProperties(updateKolDTO, kolProfile, getNullPropertyNames(updateKolDTO));
+            BeanUtils.copyProperties(updateKolDTO, kolUser, UpdateEntityUtil.getNullPropertyNames(updateKolDTO));
+            BeanUtils.copyProperties(updateKolDTO, kolProfile, UpdateEntityUtil.getNullPropertyNames(updateKolDTO));
         }
         kolProfile.setUpdatedAt(Instant.now());
         userRepository.save(kolUser);
@@ -324,25 +313,6 @@ public class KolProfileServiceImpl implements KolProfileService {
                 .message(List.of("Update kol profile successfully"))
                 .data(kolDetailMapper.toDto(kolProfile))
                 .build();
-    }
-
-    /**
-     * Utility method to get names of properties with null values in the source object.
-     * This is used to ignore null properties during BeanUtils.copyProperties.
-     *
-     * @param source the source object to check for null properties
-     * @return an array of property names that have null values
-     */
-    private static String[] getNullPropertyNames(Object source) {
-        final BeanWrapper src = new BeanWrapperImpl(source);
-        PropertyDescriptor[] pds = src.getPropertyDescriptors();
-        Set<String> emptyNames = new HashSet<>();
-        for (PropertyDescriptor pd : pds) {
-            Object srcValue = src.getPropertyValue(pd.getName());
-            if (srcValue == null) emptyNames.add(pd.getName());
-        }
-        String[] result = new String[emptyNames.size()];
-        return emptyNames.toArray(result);
     }
 
     @Transactional
@@ -416,6 +386,27 @@ public class KolProfileServiceImpl implements KolProfileService {
         return ApiResponse.builder()
                 .status(HttpStatus.OK.value())
                 .message(List.of("Successfully " + action + " " + fileUsages.size() + " media files"))
+                .data(null)
+                .build();
+    }
+
+    @Override
+    public ApiResponse<?> deleteFileMedia(UUID changerId, UUID fileId) {
+        User changer = userRepository.findById(changerId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found: " + changerId));
+        File file = fileRepository.findById(fileId)
+                .orElseThrow(() -> new EntityNotFoundException("File not found for ID: " + fileId));
+        boolean isUploader = file.getUploader().getId().equals(changer.getId());
+        boolean isAdmin = changer.getRoles().stream()
+                .anyMatch(role -> Enums.Roles.ADMIN.name().equals(role.getKey()));
+        if (!isUploader && !isAdmin) {
+            throw new AccessDeniedException("Only admin or the uploader can delete this file.");
+        }
+        file.setStatus(Enums.FileStatus.DELETED.name());
+        fileRepository.save(file);
+        return ApiResponse.builder()
+                .status(HttpStatus.OK.value())
+                .message(List.of("Delete media file successfully"))
                 .data(null)
                 .build();
     }

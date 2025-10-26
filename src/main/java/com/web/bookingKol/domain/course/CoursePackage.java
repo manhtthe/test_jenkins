@@ -40,7 +40,7 @@ public class CoursePackage {
 
     @OneToMany
     @JoinColumn(name = "target_id", referencedColumnName = "id", insertable = false, updatable = false)
-    private Set<FileUsage> fileUsages;
+    private Set<FileUsage> fileUsages = new LinkedHashSet<>();
 
     @Column(name = "is_available")
     private Boolean isAvailable;

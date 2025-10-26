@@ -24,7 +24,7 @@ public class CategoryServiceImpl implements CategoryService {
         List<Category> categories = categoryRepository.findAll();
         return ApiResponse.<List<Category>>builder()
                 .status(200)
-                .message(List.of("Get all categories success"))
+                .message(List.of("Lấy tất cả categories thành công"))
                 .data(categories)
                 .build();
     }
@@ -32,52 +32,65 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public ApiResponse<Category> findByCategoryId(UUID categoryId) {
         Category category = categoryRepository.findByCategoryId(categoryId)
-                .orElseThrow(() -> new RuntimeException("Category not found with id: " + categoryId));
+                .orElseThrow(() -> new RuntimeException("không tìm thấy category id: " + categoryId));
         return ApiResponse.<Category>builder()
                 .status(200)
-                .message(List.of("Get category success"))
+                .message(List.of("Lấy category thành công"))
                 .data(category)
                 .build();
     }
 
     @Transactional
-    public ApiResponse<Category> updateCategory(Category category) {
-        if (category.getId() == null) {
-            throw new IllegalArgumentException("Id is required for update");
+    public ApiResponse<Category> updateCategory(UUID id, Category updateRequest) {
+        Category existing = categoryRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy category id: " + id));
+
+        if (updateRequest.getName() != null && !updateRequest.getName().isBlank()) {
+            existing.setName(updateRequest.getName());
         }
-        Category existingCategory = categoryRepository.findById(category.getId())
-                .orElseThrow(() -> new RuntimeException("Category not found with id: " + category.getId()));
-        if (category.getKey() != null && !category.getKey().isBlank()) {
-            existingCategory.setKey(category.getKey());
-        }
-        if (category.getName() != null && !category.getName().isBlank()) {
-            existingCategory.setName(category.getName());
+        if (updateRequest.getKey() != null && !updateRequest.getKey().isBlank()) {
+            existing.setKey(updateRequest.getKey());
         }
 
-        Category saved = categoryRepository.save(existingCategory);
+        Category saved = categoryRepository.save(existing);
         return ApiResponse.<Category>builder()
                 .status(200)
-                .message(java.util.List.of("Update category success"))
+                .message(List.of("Cập nhật category thành công"))
                 .data(saved)
                 .build();
     }
 
     @Transactional
     public ApiResponse<Category> createCategory(Category category) {
+        category.setId(null);
+        category.setDeleted(false);
+
+        Category saved = categoryRepository.save(category);
         return ApiResponse.<Category>builder()
-                .status(200)
-                .message(List.of("Update category success"))
-                .data(categoryRepository.save(category))
+                .status(201)
+                .message(List.of("Tạo category thành công"))
+                .data(saved)
                 .build();
     }
 
     @Transactional
-    public String deleteCategory(UUID categoryId) {
-        if (!categoryRepository.existsById(categoryId)) {
+    public ApiResponse<String> deleteCategory(UUID categoryId) {
+        Category category = categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy category id: " + categoryId));
 
-            throw new RuntimeException("Category not found with id: " + categoryId);
-        }
-        categoryRepository.deleteById(categoryId);
-        return "Delete category success";
+        boolean newStatus = !category.isDeleted();
+        category.setDeleted(newStatus);
+        categoryRepository.save(category);
+
+        String message = newStatus
+                ? "Đã chuyển category sang trạng thái đã xóa"
+                : "Đã khôi phục category";
+
+        return ApiResponse.<String>builder()
+                .status(200)
+                .message(List.of(message))
+                .data(message)
+                .build();
     }
+
 }

@@ -28,7 +28,8 @@ public class Enums {
         SUPER_ADMIN(1),
         ADMIN(2),
         USER(3),
-        KOL(4);
+        KOL(4),
+        LIVE(5);
         private final Integer value;
 
         private Roles(Integer value) {
@@ -60,7 +61,9 @@ public class Enums {
         CONTRACT,
         COURSE_PACKAGE,
         SERVICE_PACKAGE,
-        OTHER
+        ATTACHMENTS,
+        OTHER,
+        CAMPAIGN
     }
 
     @Getter
@@ -92,8 +95,35 @@ public class Enums {
         DRAFT,
         SENT,
         SIGNED,
+        COMPLETED,
         CANCELLED,
         EXPIRED
+    }
+
+    @Getter
+    public enum BookingRules {
+        MIN_BOOKING_TIME(1),
+        MAX_BOOKING_TIME(3),
+        REST_TIME(1);
+        private final Integer value;
+
+        private BookingRules(Integer value) {
+            this.value = value;
+        }
+    }
+
+    @Getter
+    public enum BookingType {
+        SINGLE,
+    }
+
+    @Getter
+    public enum KOLWorkTimeStatus {
+        REQUESTED,
+        ACCEPTED,
+        IN_PROGRESS,
+        CANCELLED,
+        COMPLETED
     }
 
     // ---------------- PAYMENT ----------------
@@ -119,11 +149,23 @@ public class Enums {
     }
 
     @Getter
-    public enum PayoutStatus {
+    public enum PaymentStatus {
         PENDING,
-        PROCESSING,
+        UNDERPAID,
         PAID,
-        FAILED
+        OVERPAID,
+        EXPIRED,
+        REFUNDED,
+        CANCELLED
+    }
+
+    @Getter
+    public enum TransactionStatus {
+        PENDING,
+        COMPLETED,
+        FAILED,
+        CANCELLED,
+        ORPHANED
     }
 
     // ---------------- PLATFORM ----------------
