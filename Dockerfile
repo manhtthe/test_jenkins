@@ -8,19 +8,25 @@ COPY gradle ./gradle
 COPY gradlew ./
 RUN chmod +x gradlew
 
-# tải dependency trước cho nhanh (không bắt buộc)
+# tải dependency (tùy chọn, để cache cho lần sau)
 RUN ./gradlew --no-daemon dependencies || true
 
-# copy source
+# copy source code
 COPY src ./src
 
-# build jar (skip tests)
+# build jar (bỏ test để nhanh hơn)
 RUN ./gradlew --no-daemon bootJar -x test
 
 # --- runtime stage ---
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
-# copy file jar đã build (đường dẫn Gradle mặc định)
+
+# copy jar từ stage build
 COPY --from=build /app/build/libs/*.jar app.jar
+
+
+# expose port
 EXPOSE 8080
+
+# run app
 ENTRYPOINT ["java","-jar","/app/app.jar"]
