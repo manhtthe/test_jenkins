@@ -55,14 +55,17 @@ spec:
       steps {
         container('docker-cli') {
           script {
+            // Fix Git "dubious ownership"
             sh 'git config --global --add safe.directory "$WORKSPACE"'
+
             def shortCommit = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
             def tag = "v${shortCommit}"
-            sh """
-              echo "Building image: ${REGISTRY}/${IMAGE_NAME}:${tag}"
+
+            sh '''
+              echo "Building image: $REGISTRY/$IMAGE_NAME:'"$tag"'"
               docker version
-              docker build -t ${REGISTRY}/${IMAGE_NAME}:${tag} -t ${REGISTRY}/${IMAGE_NAME}:latest .
-            """
+              docker build -t $REGISTRY/$IMAGE_NAME:'"$tag"' -t $REGISTRY/$IMAGE_NAME:latest .
+            '''
             env.IMAGE_TAG = tag
           }
         }
@@ -72,11 +75,11 @@ spec:
     stage('Push Image to Registry') {
       steps {
         container('docker-cli') {
-          sh """
-            echo "Pushing images to ${REGISTRY}"
-            docker push ${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}
-            docker push ${REGISTRY}/${IMAGE_NAME}:latest
-          """
+          sh '''
+            echo "Pushing images to $REGISTRY"
+            docker push $REGISTRY/$IMAGE_NAME:$IMAGE_TAG
+            docker push $REGISTRY/$IMAGE_NAME:latest
+          '''
         }
       }
     }
@@ -84,20 +87,21 @@ spec:
     stage('Deploy to Kubernetes') {
       steps {
         container('docker-cli') {
-          sh """
+          // Cài kubectl “tại chỗ” (docker:24-cli là Alpine)
+          sh '''
+            set -e
             echo "Installing kubectl (once per build)..."
-            ARCH=$(uname -m); case "$ARCH" in x86_64) ARCH=amd64;; aarch64) ARCH=arm64;; *) ARCH=amd64;; esac
+            ARCH=$(uname -m); case "$ARCH" in x86_64) ARCH=amd64;; aarch64|arm64) ARCH=arm64;; *) ARCH=amd64;; esac
             KVER=v1.30.4
-            # docker:24-cli = Alpine → cần CA + curl
             apk add --no-cache curl ca-certificates >/dev/null
-            curl -L -o /usr/local/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/${KVER}/bin/linux/${ARCH}/kubectl
+            curl -fsSL -o /usr/local/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/${KVER}/bin/linux/${ARCH}/kubectl
             chmod +x /usr/local/bin/kubectl
             kubectl version --client
 
-            echo "Deploying ${IMAGE_NAME} to Kubernetes..."
-            kubectl -n default set image deployment/${IMAGE_NAME} ${IMAGE_NAME}=${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}
-            kubectl -n default rollout status deployment/${IMAGE_NAME} --timeout=180s
-          """
+            echo "Deploying $IMAGE_NAME to Kubernetes..."
+            kubectl -n default set image deployment/$IMAGE_NAME $IMAGE_NAME=$REGISTRY/$IMAGE_NAME:$IMAGE_TAG
+            kubectl -n default rollout status deployment/$IMAGE_NAME --timeout=180s
+          '''
         }
       }
     }
