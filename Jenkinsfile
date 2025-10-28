@@ -84,8 +84,13 @@ pipeline {
         container('docker-cli') {
           sh """
             echo "Pushing images to ${REGISTRY}"
+            echo '{ "insecure-registries": ["10.0.2.244:30500"] }' > /etc/docker/daemon.json
+            dockerd &
+            sleep 5
+            docker login http://10.0.2.244:30500 || true
             docker push ${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}
             docker push ${REGISTRY}/${IMAGE_NAME}:latest
+
           """
         }
       }
