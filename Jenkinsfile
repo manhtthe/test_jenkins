@@ -58,12 +58,17 @@ spec:
       steps {
         container('docker-cli') {
           script {
+            sh 'git config --global --add safe.directory /home/jenkins/agent/workspace/spring-demo-build'
+
             def shortCommit = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
             def tag = "v${shortCommit}"
+
             sh """
+              echo "Building image: ${REGISTRY}/${IMAGE_NAME}:${tag}"
               docker version
               docker build -t ${REGISTRY}/${IMAGE_NAME}:${tag} -t ${REGISTRY}/${IMAGE_NAME}:latest .
             """
+
             env.IMAGE_TAG = tag
           }
         }
@@ -74,6 +79,7 @@ spec:
       steps {
         container('docker-cli') {
           sh """
+            echo "Pushing images to ${REGISTRY}"
             docker push ${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}
             docker push ${REGISTRY}/${IMAGE_NAME}:latest
           """
@@ -86,6 +92,7 @@ spec:
         container('docker-cli') {
           script {
             sh """
+              echo "Deploying ${IMAGE_NAME} to Kubernetes..."
               kubectl set image deployment/${IMAGE_NAME} ${IMAGE_NAME}=${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG} -n default --kubeconfig ~/.kube/config
               kubectl rollout status deployment/${IMAGE_NAME} -n default --timeout=180s
             """
