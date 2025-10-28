@@ -55,18 +55,15 @@ spec:
       steps {
         container('docker-cli') {
           script {
-            // Fix Git "dubious ownership"
             sh 'git config --global --add safe.directory "$WORKSPACE"'
-
             def shortCommit = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
-            def tag = "v${shortCommit}"
-
+            env.IMAGE_TAG = "v${shortCommit}"   // <-- đặt vào env để dùng trong shell
             sh '''
-              echo "Building image: $REGISTRY/$IMAGE_NAME:'"$tag"'"
+              set -e
+              echo "Building image: $REGISTRY/$IMAGE_NAME:$IMAGE_TAG"
               docker version
-              docker build -t $REGISTRY/$IMAGE_NAME:'"$tag"' -t $REGISTRY/$IMAGE_NAME:latest .
+              docker build -t $REGISTRY/$IMAGE_NAME:$IMAGE_TAG -t $REGISTRY/$IMAGE_NAME:latest .
             '''
-            env.IMAGE_TAG = tag
           }
         }
       }
@@ -76,6 +73,7 @@ spec:
       steps {
         container('docker-cli') {
           sh '''
+            set -e
             echo "Pushing images to $REGISTRY"
             docker push $REGISTRY/$IMAGE_NAME:$IMAGE_TAG
             docker push $REGISTRY/$IMAGE_NAME:latest
@@ -87,7 +85,6 @@ spec:
     stage('Deploy to Kubernetes') {
       steps {
         container('docker-cli') {
-          // Cài kubectl “tại chỗ” (docker:24-cli là Alpine)
           sh '''
             set -e
             echo "Installing kubectl (once per build)..."
