@@ -1,5 +1,7 @@
 pipeline {
-  agent any
+  agent { label 'manhtt' }
+
+
 
   environment {
     REGISTRY = "10.0.2.244:30500"
