@@ -34,16 +34,10 @@ spec:
       value: tcp://127.0.0.1:2375
     - name: DOCKER_TLS_CERTDIR
       value: ""
-    volumeMounts:
-    - name: docker-sock
-      mountPath: /var/run
   - name: kubectl
-    image: bitnami/kubectl:1.30
+    image: registry.k8s.io/kubectl:v1.30.4
     command: ["sleep","infinity"]
     tty: true
-  volumes:
-  - name: docker-sock
-    emptyDir: {}
 """
     }
   }
@@ -65,9 +59,12 @@ spec:
       steps {
         container('docker-cli') {
           script {
-            sh 'git config --global --add safe.directory /home/jenkins/agent/workspace/spring-demo-build'
+            // Fix Git "dubious ownership"
+            sh 'git config --global --add safe.directory "$WORKSPACE"'
+
             def shortCommit = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
             def tag = "v${shortCommit}"
+
             sh """
               echo "Building image: ${REGISTRY}/${IMAGE_NAME}:${tag}"
               docker version
@@ -105,7 +102,7 @@ spec:
   }
 
   post {
-    success { echo "Build & Deploy thành công: ${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}" }
-    failure { echo "Build thất bại!" }
+    success { echo "✅ Build & Deploy thành công: ${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}" }
+    failure { echo "❌ Build thất bại!" }
   }
 }
