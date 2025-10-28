@@ -3,46 +3,45 @@ pipeline {
     kubernetes {
       label 'docker-agent'
       yaml """
-apiVersion: v1
-kind: Pod
-metadata:
-  labels:
-    app: jenkins-docker-agent
-spec:
-  serviceAccountName: jenkins
-  containers:
-  - name: docker
-    image: docker:24-dind
-    securityContext:
-      privileged: true
-    env:
-    - name: DOCKER_TLS_CERTDIR
-      value: ""
-    command:
-    - dockerd-entrypoint.sh
-    args:
-    - --host=tcp://127.0.0.1:2375
-    - --storage-driver=vfs
-    ports:
-    - containerPort: 2375
-      name: docker
-  - name: docker-cli
-    image: docker:24-cli
-    command:
-    - cat
-    tty: true
-    env:
-    - name: DOCKER_HOST
-      value: tcp://127.0.0.1:2375
-    - name: DOCKER_TLS_CERTDIR
-      value: ""
-    volumeMounts:
-    - name: docker-sock
-      mountPath: /var/run
-  volumes:
-  - name: docker-sock
-    emptyDir: {}
-"""
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        labels:
+          app: jenkins-docker-agent
+      spec:
+        serviceAccountName: jenkins
+        containers:
+        - name: docker
+          image: docker:24-dind
+          securityContext:
+            privileged: true
+          env:
+          - name: DOCKER_TLS_CERTDIR
+            value: ""                  # tắt TLS
+          args:
+          - --host=tcp://0.0.0.0:2375  # chỉ cần args, không cần command
+          - --storage-driver=vfs
+          ports:
+          - containerPort: 2375
+            name: docker
+        - name: docker-cli
+          image: docker:24-cli
+          command:
+          - cat
+          tty: true
+          env:
+          - name: DOCKER_HOST
+            value: tcp://127.0.0.1:2375
+          - name: DOCKER_TLS_CERTDIR
+            value: ""
+          volumeMounts:
+          - name: docker-sock
+            mountPath: /var/run
+        volumes:
+        - name: docker-sock
+          emptyDir: {}
+      """
+
     }
   }
 
