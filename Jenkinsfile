@@ -21,6 +21,7 @@ pipeline {
           args:
           - --host=tcp://0.0.0.0:2375  # chỉ cần args, không cần command
           - --storage-driver=vfs
+          - --insecure-registry=10.0.2.244:30500
           ports:
           - containerPort: 2375
             name: docker
