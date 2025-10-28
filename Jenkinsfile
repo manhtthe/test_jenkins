@@ -35,9 +35,10 @@ spec:
     - name: DOCKER_TLS_CERTDIR
       value: ""
   - name: kubectl
-    image: bitnami/kubectl:1.30.4
-    command: ["cat"]
+    image: lachlanevenson/k8s-kubectl:v1.30.4
+    command: ["sh","-c","sleep 365d"]
     tty: true
+
 
 """
     }
