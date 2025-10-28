@@ -34,12 +34,6 @@ spec:
       value: tcp://127.0.0.1:2375
     - name: DOCKER_TLS_CERTDIR
       value: ""
-  - name: kubectl
-    image: lachlanevenson/k8s-kubectl:v1.30.4
-    command: ["sh","-c","sleep 365d"]
-    tty: true
-
-
 """
     }
   }
@@ -61,12 +55,9 @@ spec:
       steps {
         container('docker-cli') {
           script {
-            // Fix Git "dubious ownership"
             sh 'git config --global --add safe.directory "$WORKSPACE"'
-
             def shortCommit = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
             def tag = "v${shortCommit}"
-
             sh """
               echo "Building image: ${REGISTRY}/${IMAGE_NAME}:${tag}"
               docker version
@@ -92,8 +83,17 @@ spec:
 
     stage('Deploy to Kubernetes') {
       steps {
-        container('kubectl') {
+        container('docker-cli') {
           sh """
+            echo "Installing kubectl (once per build)..."
+            ARCH=$(uname -m); case "$ARCH" in x86_64) ARCH=amd64;; aarch64) ARCH=arm64;; *) ARCH=amd64;; esac
+            KVER=v1.30.4
+            # docker:24-cli = Alpine → cần CA + curl
+            apk add --no-cache curl ca-certificates >/dev/null
+            curl -L -o /usr/local/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/${KVER}/bin/linux/${ARCH}/kubectl
+            chmod +x /usr/local/bin/kubectl
+            kubectl version --client
+
             echo "Deploying ${IMAGE_NAME} to Kubernetes..."
             kubectl -n default set image deployment/${IMAGE_NAME} ${IMAGE_NAME}=${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}
             kubectl -n default rollout status deployment/${IMAGE_NAME} --timeout=180s
