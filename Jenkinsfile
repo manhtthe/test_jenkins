@@ -15,6 +15,9 @@ spec:
     image: docker:24-dind
     securityContext:
       privileged: true
+    env:
+    - name: DOCKER_TLS_CERTDIR
+      value: ""
     command:
     - dockerd-entrypoint.sh
     args:
@@ -31,6 +34,8 @@ spec:
     env:
     - name: DOCKER_HOST
       value: tcp://127.0.0.1:2375
+    - name: DOCKER_TLS_CERTDIR
+      value: ""
     volumeMounts:
     - name: docker-sock
       mountPath: /var/run
